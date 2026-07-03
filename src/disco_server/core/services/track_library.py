@@ -1,13 +1,25 @@
 from disco_server.core.models.track import Track
+from disco_server.core.database.database import Database
+from disco_server.core.database.dtos.track_dto import TrackDTO
 
 class TrackLibrary:
     """Collection of Track objects, keyed by track name."""
 
     def __init__(self):
-        self._tracks : list[Track] = []
+        self.database = Database()
+        self._tracks: list[Track] = [self._map_from_dto(track) for track in self.database.get_tracks()]
+
+    @staticmethod
+    def _map_to_dto(track : Track) -> TrackDTO:
+        return TrackDTO(name=track.name, path=track.path, cue_point=track.cue_time)
+
+    @staticmethod
+    def _map_from_dto(dto: TrackDTO) -> Track:
+        return Track(name=dto.name, path=dto.path, cue_time=dto.cue_point)
 
     def create_track(self, track : Track) -> None:
         """Add a new track to the library."""
+        self.database.add_track(self._map_to_dto(track))
         self._tracks.append(track)
 
     def delete_track(self, track : Track) -> bool:
