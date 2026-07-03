@@ -5,5 +5,5 @@ from dataclasses import dataclass
 class Track:
     path: str
     name: str
-    cue_time: int
+    cue_time: int | None
 
