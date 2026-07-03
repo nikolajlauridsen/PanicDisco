@@ -1,7 +1,7 @@
 import vlc
 from vlc import MediaPlayer
 
-from disco_server.core.models.Track import Track
+from disco_server.core.models.track import Track
 
 class Boombox:
     """A single-track audio player backed by VLC.
@@ -12,16 +12,16 @@ class Boombox:
     """
 
     def __init__(self):
-        self.loaded_track : Track = None
+        self.loaded_track : Track | None = None
         self._vlc_instance = vlc.Instance()
         self.player : MediaPlayer = self._vlc_instance.media_player_new()
 
-    def _ensure_loaded(self):
+    def _ensure_loaded(self) -> None:
         """Raise if no track has been loaded yet."""
         if self.loaded_track is None:
             raise RuntimeError("Boombox not loaded")
 
-    def load_track(self, track: Track):
+    def load_track(self, track: Track) -> None:
         """Load `track`.
 
         Does not start playback; call `play` afterwards.
@@ -29,7 +29,7 @@ class Boombox:
         self.loaded_track = track
         self.player = vlc.MediaPlayer(f"file://{track.path}")
 
-    def play(self):
+    def play(self) -> None:
         """Start playback of the loaded track.
 
         If the track has a `cue_time`, seeks to it (in seconds) after
@@ -42,12 +42,12 @@ class Boombox:
             # Set time is in ms
             self.player.set_time(self.loaded_track.cue_time * 1000)
 
-    def stop(self):
+    def stop(self) -> None:
         """Stop playback of the loaded track."""
         self._ensure_loaded()
         self.player.stop()
 
-    def pause(self):
+    def pause(self) -> None:
         """Pause playback of the loaded track."""
         self._ensure_loaded()
         self.player.set_pause(1)

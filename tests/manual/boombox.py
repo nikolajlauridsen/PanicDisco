@@ -1,7 +1,7 @@
 import time
 
-from disco_server.core.services.Boombox import Boombox
-from disco_server.core.models.Track import Track
+from disco_server.core.services.boombox import Boombox
+from disco_server.core.models.track import Track
 
 track = Track(name="Pirouette", cue_time=50, path="/home/mole/Music/Made in Heights/ENEMY [2015]/02 Pirouette.mp3")
 print(f"Loading track {track.name} at {track.path}")
