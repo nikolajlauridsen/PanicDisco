@@ -1,9 +1,8 @@
-from sqlite3 import OperationalError
-
 import vlc
 from vlc import MediaPlayer
 
-from core.models.Track import Track
+from disco_server.core.models.Track import Track
+
 class Boombox:
 
     def __init__(self):
@@ -12,10 +11,9 @@ class Boombox:
 
     def _ensure_loaded(self):
         if self.player is None or self.loaded_track is None:
-            raise OperationalError("Boombox not loaded")
+            raise RuntimeError("Boombox not loaded")
 
     def load_track(self, track: Track):
-        self._ensure_loaded()
         self.loaded_track = track
         self.player = vlc.MediaPlayer(f"file://{track.path}")
 
