@@ -54,3 +54,7 @@ class Boombox:
         self._ensure_loaded()
         self.player.set_pause(1)
 
+    def resume(self) -> None:
+        """Resume playback of the loaded track."""
+        self._ensure_loaded()
+        self.player.set_pause(0)
