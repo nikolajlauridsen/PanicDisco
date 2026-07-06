@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import vlc
 from vlc import MediaPlayer
 
@@ -27,7 +29,7 @@ class Boombox:
         Does not start playback; call `play` afterwards.
         """
         self.loaded_track = track
-        self.player = vlc.MediaPlayer(f"file://{track.path}")
+        self.player = vlc.MediaPlayer(Path(track.path).as_uri())
 
     def play(self) -> None:
         """Start playback of the loaded track.
