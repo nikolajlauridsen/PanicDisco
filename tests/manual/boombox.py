@@ -1,10 +1,12 @@
 import time
 
+from disco_server.core.database.database import Database
 from disco_server.core.services.boombox import Boombox
 from disco_server.core.services.track_library import TrackLibrary
 from disco_server.core.models.track import Track
 
-library = TrackLibrary()
+db = Database()
+library = TrackLibrary(db)
 
 print("="*5 + "Tracks" + "="*5)
 tracks = library.get_tracks()

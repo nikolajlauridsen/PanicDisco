@@ -5,8 +5,8 @@ from disco_server.core.database.dtos.track_dto import TrackDTO
 class TrackLibrary:
     """Collection of Track objects, keyed by track name."""
 
-    def __init__(self):
-        self.database = Database()
+    def __init__(self, database : Database) -> None:
+        self.database : Database = database
         self._tracks: list[Track] = [self._map_from_dto(track) for track in self.database.get_tracks()]
 
     @staticmethod
