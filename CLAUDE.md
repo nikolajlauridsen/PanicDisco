@@ -26,17 +26,17 @@ python3 -m pytest tests/integration -v
 ```
 Run a single test: `python3 -m pytest tests/integration/test_track_library.py::test_create_track_persists_to_database -v`
 
-Manual/exploratory scripts (need a real audio file and a real VLC install; not run in CI):
+Manual/exploratory scripts (need a real audio file and a real VLC install; not run in CI). Both call `create_app()` and use `app.database`, so they read/write the same SQLite file the Flask app would use (`<instance_path>/disco_server.sqlite3` by default):
 ```bash
-python tests/manual/seed_database.py   # prompts for a directory, seeds a Database with its .mp3 files
-python tests/manual/boombox.py         # lists tracks in the DB, plays a chosen one via Boombox
+python tests/manual/seed_database.py   # prompts for a directory, seeds app.database with its .mp3 files
+python tests/manual/boombox.py         # lists tracks in app.database, plays a chosen one via Boombox
 ```
 
 ## Architecture
 
-- `src/disco_server/__init__.py` — `create_app()` Flask factory. Minimal today; this is where routes/blueprints will be wired up as the HTTP API grows.
+- `src/disco_server/__init__.py` — `create_app(test_config=None)` Flask factory. Loads config with `DATABASE_PATH` defaulting to `<instance_path>/disco_server.sqlite3` (overridable via `instance/config.py`, or by passing a `test_config` dict — the flaskr-tutorial pattern), then builds and initializes `app.database` (a `Database` instance) from it. This is where routes/blueprints will be wired up as the HTTP API grows; they should reuse `app.database`/`current_app.database` rather than constructing their own `Database`.
 - `src/disco_server/core/models/track.py` — `Track`: a single SQLAlchemy `DeclarativeBase` model (`Base` in `dtos/base.py`) that doubles as both the domain object and the persisted row (no separate DTO/domain mapping — see commit "Don't map back and forth between dto and domain model").
-- `src/disco_server/core/database/database.py` — `Database` wraps a SQLAlchemy engine/scoped session against a SQLite file and exposes CRUD primitives (`add_track`, `remove_track`, `save_changes`, `get_tracks`). The db path is currently hardcoded to a Windows path in `Database.__init__` (marked `TODO: Make the path come from configuration`) — pass `db_path` explicitly rather than relying on the default.
+- `src/disco_server/core/database/database.py` — `Database` wraps a SQLAlchemy engine/scoped session against a SQLite file and exposes CRUD primitives (`add_track`, `remove_track`, `save_changes`, `get_tracks`). `db_path` is a required constructor arg (framework-agnostic — no default); the default `DATABASE_PATH` used at runtime lives in Flask config via `create_app`, not in `Database` itself.
 - `src/disco_server/core/services/track_library.py` — `TrackLibrary` is the in-memory-plus-database layer application code should use instead of `Database` directly. It loads all tracks into a list on construction and mutates both the list and the database together on create/update/delete. Because it caches tracks in memory at construction time, a second `TrackLibrary` instance must be built against the same `Database` to observe changes made elsewhere (see `reload()` helper in the integration tests).
   - All lookups/mutations key off `id` (`get_track`, `update_track`) or object identity (`delete_track` matches by object identity, not by field equality) — names are not unique, so id-based matching avoids ambiguity between duplicate-named tracks.
 - `src/disco_server/core/services/boombox.py` — `Boombox` wraps a single `vlc.MediaPlayer` for one loaded `Track` at a time (`load_track` → `play`/`pause`/`resume`/`stop`). Playback methods raise `RuntimeError` via `_ensure_loaded()` if called before `load_track`. If a track has `cue_time` set, `play()` seeks to it (in seconds, converted to ms for VLC) after starting playback.
@@ -44,4 +44,5 @@ python tests/manual/boombox.py         # lists tracks in the DB, plays a chosen 
 ## Testing conventions
 
 - Integration tests (`tests/integration/`) run against a real SQLite database backed by a per-test temp file (`conftest.py`'s `db_path`/`database`/`library` fixtures), not a mock — persistence is asserted by constructing a second `TrackLibrary`/`Database` from the same file and reading state back.
+- `test_app.py` covers `create_app`'s config wiring by passing a `test_config` dict (overriding `DATABASE_PATH` to a temp path) rather than exercising the parameterless default, which would write a real file under `src/instance/`.
 - `tests/manual/` scripts are not part of the automated suite; they require real hardware/audio files and are meant to be run manually against a real VLC install.

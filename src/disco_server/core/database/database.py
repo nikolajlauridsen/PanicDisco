@@ -6,8 +6,7 @@ from disco_server.core.models.track import Track
 
 
 class Database:
-    # TODO: Make the path come from configuration
-    def __init__(self, db_path: str = r'C:\Users\nikol\Documents\Github\PanicDisco\tests\manual\tmp\test.db'):
+    def __init__(self, db_path: str):
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         self._engine = create_engine(f'sqlite:///{db_path}')
         self.db_sessions = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=self._engine))

@@ -1,12 +1,10 @@
 import os
 
-from disco_server.core.database.database import Database
+from disco_server import create_app
 from disco_server.core.services.track_library import TrackLibrary
 from disco_server.core.models.track import Track
 
-def create_library(directory : str, files: list[str]) -> TrackLibrary:
-    database = Database()
-    database.init_db()
+def create_library(database, directory : str, files: list[str]) -> TrackLibrary:
     library = TrackLibrary(database)
 
     print("Adding tracks to library...")
@@ -17,8 +15,10 @@ def create_library(directory : str, files: list[str]) -> TrackLibrary:
 
     return library
 
+app = create_app()
+
 directory = input("Chose directory to play from: ")
 files = [file for file in os.listdir(directory) if file.endswith(".mp3")]
 
-library = create_library(directory, files)
+library = create_library(app.database, directory, files)
 print("Done")
