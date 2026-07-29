@@ -12,11 +12,42 @@ def not_found():
 
 @bp.route('/tracks')
 def list_tracks():
+    """List all track names.
+    ---
+    tags:
+      - tracks
+    responses:
+      200:
+        description: Track names
+        schema:
+          type: array
+          items:
+            type: string
+    """
     library = get_track_library()
     return jsonify([track.name for track in library.get_tracks()])
 
 @bp.route('/tracks/<int:track_id>', methods=['GET'])
 def get_track(track_id):
+    """Get details for a single track.
+    ---
+    tags:
+      - tracks
+    parameters:
+      - name: track_id
+        in: path
+        type: integer
+        required: true
+    responses:
+      200:
+        description: Track details
+        schema:
+          $ref: '#/definitions/TrackDetails'
+      404:
+        description: Track not found
+        schema:
+          $ref: '#/definitions/Error'
+    """
     library = get_track_library()
     track = library.get_track(track_id)
     if track is None:
@@ -26,6 +57,28 @@ def get_track(track_id):
 
 @bp.route('/tracks/<int:track_id>', methods=['PUT'])
 def update_track(track_id):
+    """Update a track's name, cue point and path.
+    ---
+    tags:
+      - tracks
+    parameters:
+      - name: track_id
+        in: path
+        type: integer
+        required: true
+      - name: body
+        in: body
+        required: true
+        schema:
+          $ref: '#/definitions/TrackUpdate'
+    responses:
+      204:
+        description: Track updated
+      404:
+        description: Track not found
+        schema:
+          $ref: '#/definitions/Error'
+    """
     library = get_track_library()
     track_update = TrackUpdate.model_validate(request.json)
     track = mapper.map_to_track(track_update)

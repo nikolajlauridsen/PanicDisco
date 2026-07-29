@@ -1,0 +1,42 @@
+{
+  "skill_name": "update-swagger-docs",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "new-nullable-field",
+      "prompt": "I just added a `duration_seconds: int | None` field to TrackDetails (mapped from a new `duration_seconds` column on Track) and updated get_track to include it in the response. Can you make sure the swagger docs reflect this?",
+      "expected_output": "The `TrackDetails` entry in swagger_template.py's definitions dict gains a `duration_seconds` property (type integer, x-nullable true), the spec still validates, and the test suite still passes.",
+      "files": [],
+      "assertions": [
+        "definitions.TrackDetails.properties.duration_seconds exists with type=integer and x-nullable=true",
+        "full integration test suite passes",
+        "/apispec_1.json paths['/api/tracks/{track_id}'].get.responses.200.schema is $ref TrackDetails"
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "new-delete-route",
+      "prompt": "I added a DELETE /api/tracks/<int:track_id> endpoint that returns 204 on success or a 404 Error if the track doesn't exist. Update the swagger docs to include it.",
+      "expected_output": "delete_track in tracks.py gains a flasgger YAML docstring (tags, track_id path param, 204 and 404-with-$ref-Error responses), the new DELETE method shows up in /apispec_1.json's paths, and the test suite still passes.",
+      "files": [],
+      "assertions": [
+        "delete_track has a flasgger docstring with a --- YAML block",
+        "/apispec_1.json paths['/api/tracks/{track_id}'] contains a 'delete' method",
+        "the delete operation's 404 response references $ref Error",
+        "full integration test suite passes"
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "rename-field",
+      "prompt": "I renamed the `cue_point` field to `cue_seconds` in TrackUpdate and updated update_track and mapper.py to match. Update the swagger docs so they're not out of sync.",
+      "expected_output": "The TrackUpdate entry in swagger_template.py's definitions dict is updated to `cue_seconds` (no leftover `cue_point`), the spec still validates, and the test suite still passes.",
+      "files": [],
+      "assertions": [
+        "definitions.TrackUpdate.properties has cue_seconds and not cue_point",
+        "full integration test suite passes",
+        "/apispec_1.json definitions.TrackUpdate.properties has cue_seconds"
+      ]
+    }
+  ]
+}

@@ -1,11 +1,13 @@
 import os
 
 import click
+from flasgger import Swagger
 from flask import Flask
 
 from disco_server.blueprints.tracks import bp as tracks_bp
 from disco_server.core.database.database import Database
 from disco_server.web.json_provider import PydanticJSONProvider
+from disco_server.web.swagger_template import build_swagger_template
 
 def create_app(test_config: dict | None = None):
     app = Flask(__name__, instance_relative_config=True)
@@ -35,6 +37,8 @@ def create_app(test_config: dict | None = None):
         return 'Hello, World!'
 
     app.register_blueprint(tracks_bp)
+
+    Swagger(app, template=build_swagger_template())
 
     return app
 

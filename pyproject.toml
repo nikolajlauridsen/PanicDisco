@@ -10,6 +10,7 @@ dependencies = [
     "flask",
     "python-vlc",
     "pydantic",
+    "flasgger",
 ]
 
 [project.optional-dependencies]
