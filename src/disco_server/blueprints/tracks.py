@@ -9,3 +9,13 @@ bp = Blueprint('tracks', __name__, url_prefix='/api')
 def list_tracks():
     library = get_track_library()
     return jsonify([track.name for track in library.get_tracks()])
+
+@bp.route('/tracks/<int:track_id>', methods=['GET'])
+def get_track(track_id):
+
+    library = get_track_library()
+    track = library.get_track(track_id)
+    if track is None:
+        return jsonify({'error': 'Track not found'}), 404
+
+    return jsonify(track)
