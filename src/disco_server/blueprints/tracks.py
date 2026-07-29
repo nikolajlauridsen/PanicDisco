@@ -86,3 +86,30 @@ def update_track(track_id):
     if not library.update_track(track_id, track):
         return not_found()
     return '', 204
+
+@bp.route('/tracks/<int:track_id>', methods=['DELETE'])
+def delete_track(track_id):
+    """Delete a track.
+    ---
+    tags:
+      - tracks
+    parameters:
+      - name: track_id
+        in: path
+        type: integer
+        required: true
+    responses:
+      204:
+        description: Track deleted
+      404:
+        description: Track not found
+        schema:
+          $ref: '#/definitions/Error'
+    """
+    library = get_track_library()
+    track = library.get_track(track_id)
+    if track is None:
+        return not_found()
+
+    library.delete_track(track)
+    return '', 204
