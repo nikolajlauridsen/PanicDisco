@@ -1,9 +1,10 @@
-from dataclasses import dataclass
+from pydantic import BaseModel, ConfigDict, Field
 
 
-@dataclass
-class TrackDetails:
+class TrackDetails(BaseModel):
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
     id: int
     name: str
-    cue_point: int
+    cue_point: int | None = Field(validation_alias='cue_time')
     path: str

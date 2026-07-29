@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 
 from disco_server.services import get_track_library
+from disco_server.web.mapping import mapper
 
 bp = Blueprint('tracks', __name__, url_prefix='/api')
 
@@ -12,10 +13,9 @@ def list_tracks():
 
 @bp.route('/tracks/<int:track_id>', methods=['GET'])
 def get_track(track_id):
-
     library = get_track_library()
     track = library.get_track(track_id)
     if track is None:
         return jsonify({'error': 'Track not found'}), 404
 
-    return jsonify(track)
+    return jsonify(mapper.map_to_track_details(track))

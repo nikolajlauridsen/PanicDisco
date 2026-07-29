@@ -5,9 +5,11 @@ from flask import Flask
 
 from disco_server.blueprints.tracks import bp as tracks_bp
 from disco_server.core.database.database import Database
+from disco_server.web.json_provider import PydanticJSONProvider
 
 def create_app(test_config: dict | None = None):
     app = Flask(__name__, instance_relative_config=True)
+    app.json = PydanticJSONProvider(app)
 
     print(f"Instance path {app.instance_path}")
     os.makedirs(app.instance_path, exist_ok=True)

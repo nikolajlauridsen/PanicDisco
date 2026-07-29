@@ -9,6 +9,7 @@ requires-python = ">=3.12"
 dependencies = [
     "flask",
     "python-vlc",
+    "pydantic",
 ]
 
 [project.optional-dependencies]

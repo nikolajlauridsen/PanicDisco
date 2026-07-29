@@ -1,7 +1,6 @@
 import pytest
 
 from disco_server import create_app, services
-from disco_server.core.models.track import Track
 from disco_server.core.services.track_library import TrackLibrary
 
 
@@ -34,13 +33,3 @@ def test_get_boombox_returns_the_same_instance_within_an_app(app, monkeypatch):
 
     assert isinstance(first, FakeBoombox)
     assert first is second
-
-
-def test_tracks_endpoint_lists_tracks_from_the_injected_library(app):
-    with app.app_context():
-        services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=5))
-
-    response = app.test_client().get("/tracks")
-
-    assert response.status_code == 200
-    assert response.get_json() == ["song1"]

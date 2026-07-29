@@ -1,3 +1,4 @@
+annotated-types==0.8.0
 blinker==1.9.0
 click==8.4.2
 -e git+https://github.com/nikolajlauridsen/PanicDisco.git@99fdcf78eb54c1332f54e083fae9aa270f5be20f#egg=disco_server
@@ -7,7 +8,10 @@ greenlet==3.5.3
 itsdangerous==2.2.0
 Jinja2==3.1.6
 MarkupSafe==3.0.3
+pydantic==2.13.4
+pydantic_core==2.46.4
 python-vlc==3.0.21203
 SQLAlchemy==2.0.51
+typing-inspection==0.4.2
 typing_extensions==4.16.0
 Werkzeug==3.1.8
