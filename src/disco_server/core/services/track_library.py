@@ -1,6 +1,9 @@
 from disco_server.core.models.track import Track
 from disco_server.core.database.database import Database
 
+# TODO: We cannot keep tracks in memory because it breaks the database connections
+# this is because flasks runs multi threaded, and the database doesn't like this if it's not the thread that reated the tracks that alters it
+# for update/delete, etc. re-fetch and handle issues
 class TrackLibrary:
     """Collection of Track objects, keyed by track name."""
 
