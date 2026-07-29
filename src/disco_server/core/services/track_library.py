@@ -26,10 +26,10 @@ class TrackLibrary:
         self._tracks.remove(track)
         return True
 
-    def get_track(self, track_name : str) -> Track | None:
-        """Return the track with the given name, or None if not found."""
+    def get_track(self, track_id : int) -> Track | None:
+        """Return the track with the given id, or None if not found."""
         for track in self._tracks:
-            if track.name == track_name:
+            if track.id == track_id:
                 return track
         return None
 
