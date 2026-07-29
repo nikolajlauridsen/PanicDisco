@@ -126,7 +126,7 @@ def test_update_track_changes_in_memory_state(library, make_track):
     track = make_track(name="song1", cue_time=10)
     library.create_track(track)
 
-    library.update_track(track.id, make_track(name="song1", cue_time=99))
+    library.update_track(track.id, make_track(name="song1", cue_time=99, id=track.id))
 
     assert library.get_track(track.id).cue_time == 99
 
@@ -187,6 +187,19 @@ def test_delete_track_removes_from_library(library, make_track):
 
     assert library.delete_track(track) is True
     assert library.get_track(track.id) is None
+
+
+def test_delete_track_removes_track_from_in_memory_list(library, make_track):
+    """get_tracks() reads straight from the in-memory list, so this checks
+    delete_track actually removes the track from it rather than relying on
+    get_track's own lookup over that same list.
+    """
+    track = make_track(name="song1")
+    library.create_track(track)
+
+    library.delete_track(track)
+
+    assert track not in library.get_tracks()
 
 
 def test_delete_track_persists_to_database(library, make_track):

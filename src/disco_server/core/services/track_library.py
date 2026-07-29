@@ -1,11 +1,8 @@
 from disco_server.core.models.track import Track
 from disco_server.core.database.database import Database
 
-# TODO: We cannot keep tracks in memory because it breaks the database connections
-# this is because flasks runs multi threaded, and the database doesn't like this if it's not the thread that reated the tracks that alters it
-# for update/delete, etc. re-fetch and handle issues
 class TrackLibrary:
-    """Collection of Track objects, keyed by track name."""
+    """Collection of Track objects, keyed by id (names aren't unique)."""
 
     def __init__(self, database : Database) -> None:
         self.database : Database = database
@@ -18,6 +15,11 @@ class TrackLibrary:
 
     def delete_track(self, track : Track) -> bool:
         """Remove a track from the library.
+
+        ``track`` must be the same object held in the in-memory list
+        (checked by identity, not by field equality) for the delete to
+        proceed; the database delete itself re-fetches by id so it works
+        regardless of which session/thread loaded ``track``.
 
         Returns true if track was removed.
         """
@@ -44,16 +46,29 @@ class TrackLibrary:
         """Replace the track matching track_id with the given track's data.
 
         Names aren't unique, so matching by id avoids ambiguity when
-        duplicate-named tracks exist.
+        duplicate-named tracks exist. The existing track is re-fetched from
+        the database (rather than mutating whatever object is in the
+        in-memory list) so this works regardless of which session/thread
+        loaded the in-memory copy; the in-memory list is then updated to
+        hold that same fetched instance, so any other reference to the old
+        in-memory object won't see the change.
 
         returns true if track was updated.
         """
-        for existing_track in self._tracks:
-            if existing_track.id == track_id:
-                existing_track.name = track.name
-                existing_track.path = track.path
-                existing_track.cue_time = track.cue_time
-                self.database.save_changes()
-                return True
+        existing_track = self.database.get_track(track_id)
+        if existing_track is None:
+            return False
 
-        return False
+        existing_track.cue_time = track.cue_time
+        existing_track.name = track.name
+        existing_track.path = track.path
+        self.database.save_changes()
+
+        found_index = None
+        for memory_track, index in zip(self._tracks, range(len(self._tracks))):
+            if memory_track.id == track_id:
+                found_index = index
+
+        if found_index is not None:
+            self._tracks[found_index] = existing_track
+        return True

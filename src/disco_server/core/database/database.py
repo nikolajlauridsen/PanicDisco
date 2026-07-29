@@ -22,7 +22,19 @@ class Database:
         return track
 
     def remove_track(self, track: Track) -> None:
-        self.db_sessions.delete(track)
+        """Delete the track matching ``track.id``.
+
+        Re-fetches by id via this session rather than deleting ``track``
+        directly, since a track instance loaded by another session/thread
+        isn't attached to this one and would raise on delete. No-op if the
+        id no longer exists.
+        """
+        found_track = self.get_track(track.id)
+
+        if found_track is None:
+            return
+
+        self.db_sessions.delete(found_track)
         self.db_sessions.commit()
 
     def save_changes(self) -> None:
@@ -30,3 +42,7 @@ class Database:
 
     def get_tracks(self) -> list[Track]:
         return Track.query.all()
+
+    def get_track(self, track_id: int) -> Track | None:
+        """Return the track with the given id, or None if not found."""
+        return Track.query.filter(Track.id == track_id).first()
