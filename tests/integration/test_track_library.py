@@ -12,6 +12,8 @@ that target behaviour are marked ``xfail`` — they document the remaining work
 and will start passing (reported as XPASS) once the gaps are closed.
 """
 
+import threading
+
 from disco_server.core.database.database import Database
 from disco_server.core.services.track_library import TrackLibrary
 
@@ -208,6 +210,68 @@ def test_delete_track_persists_and_preserves_other_tracks(library, make_track):
 
     names = {t.name for t in reload(library).get_tracks()}
     assert names == {"song1", "song3"}
+
+
+def test_update_track_persists_when_called_from_a_different_thread(library, make_track, db_path):
+    """Reproduces a real bug: Database's scoped_session is thread-scoped, but
+    TrackLibrary caches Track objects for the app's entire lifetime. Under
+    `flask run`'s default --with-threads dev server, a request can land on a
+    different thread than the one that first built the library. Mutating the
+    cached object and committing from that other thread's own (unrelated,
+    empty) session is a silent no-op: update_track reports success, but
+    nothing is actually written to the database.
+
+    Note this must check persistence via a brand new Database (its own engine
+    and scoped_session registry), not via reload()'s ``TrackLibrary(library.
+    database)`` — reusing the same Database from the same (main) thread would
+    just return the identity-mapped, still-dirty in-memory object from that
+    thread's own session, which is a false positive: it looks persisted but
+    was never actually flushed to disk. Only a genuinely separate Database,
+    as used here (and in test_track_survives_a_fresh_database_instance_on_the
+    _same_file), simulates an app restart closely enough to catch this.
+    """
+    track = make_track(name="song1", cue_time=10)
+    library.create_track(track)
+    track_id = track.id
+
+    result = {}
+
+    def do_update():
+        result["ok"] = library.update_track(
+            track_id, make_track(name="song1", path="/music/new.mp3", cue_time=99)
+        )
+
+    thread = threading.Thread(target=do_update)
+    thread.start()
+    thread.join()
+
+    assert result["ok"] is True
+
+    reloaded = TrackLibrary(Database(db_path=db_path)).get_track(track_id)
+    assert reloaded.cue_time == 99
+    assert reloaded.path == "/music/new.mp3"
+
+
+def test_delete_track_persists_when_called_from_a_different_thread(library, make_track, db_path):
+    """Same underlying issue as the update case, for delete_track. See the
+    docstring on test_update_track_persists_when_called_from_a_different_thread
+    for why this must check persistence via a brand new Database rather than
+    reload()."""
+    track = make_track(name="song1")
+    library.create_track(track)
+    track_id = track.id
+
+    result = {}
+
+    def do_delete():
+        result["ok"] = library.delete_track(library.get_track(track_id))
+
+    thread = threading.Thread(target=do_delete)
+    thread.start()
+    thread.join()
+
+    assert result["ok"] is True
+    assert TrackLibrary(Database(db_path=db_path)).get_track(track_id) is None
 
 
 def test_full_crud_lifecycle_through_database(library, make_track):
