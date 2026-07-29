@@ -6,9 +6,15 @@ from disco_server.core.services.track_library import TrackLibrary
 
 
 @pytest.fixture
-def database(tmp_path):
+def db_path(tmp_path):
+    """Path to a fresh per-test SQLite file, shared by any Database pointed at it."""
+    return str(tmp_path / "test.db")
+
+
+@pytest.fixture
+def database(db_path):
     """A real SQLite database backed by a fresh per-test file."""
-    db = Database(db_path=str(tmp_path / "test.db"))
+    db = Database(db_path=db_path)
     db.init_db()
     return db
 

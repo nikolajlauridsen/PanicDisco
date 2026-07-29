@@ -37,21 +37,20 @@ class TrackLibrary:
         """Return a list of all tracks in the library."""
         return [track for track in self._tracks]
 
-    def update_track(self, track_name : str, track : Track) -> bool:
-        """Replace the track matching track_name with the given track's data.
+    def update_track(self, track_id : int, track : Track) -> bool:
+        """Replace the track matching track_id with the given track's data.
+
+        Names aren't unique, so matching by id avoids ambiguity when
+        duplicate-named tracks exist.
 
         returns true if track was updated.
         """
-        updated = False
         for existing_track in self._tracks:
-            if existing_track.name == track_name:
+            if existing_track.id == track_id:
                 existing_track.name = track.name
                 existing_track.path = track.path
                 existing_track.cue_time = track.cue_time
-                updated = True
-                break
+                self.database.save_changes()
+                return True
 
-        if updated:
-            self.database.save_changes()
-
-        return updated
+        return False
