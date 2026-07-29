@@ -2,7 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from disco_server.core.database.dtos.base import Base
-from disco_server.core.database.dtos.track_dto import TrackDTO
+from disco_server.core.models.track import Track
 
 
 class Database:
@@ -17,14 +17,17 @@ class Database:
         print('Initializing database...')
         Base.metadata.create_all(bind=self._engine)
 
-    def add_track(self, track: TrackDTO) -> TrackDTO:
+    def add_track(self, track: Track) -> Track:
         self.db_sessions.add(track)
         self.db_sessions.commit()
         return track
 
-    def remove_track(self, track: TrackDTO) -> None:
+    def remove_track(self, track: Track) -> None:
         self.db_sessions.delete(track)
         self.db_sessions.commit()
 
-    def get_tracks(self) -> list[TrackDTO]:
-        return TrackDTO.query.all()
+    def save_changes(self) -> None:
+        self.db_sessions.commit()
+
+    def get_tracks(self) -> list[Track]:
+        return Track.query.all()

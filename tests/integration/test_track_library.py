@@ -12,8 +12,6 @@ that target behaviour are marked ``xfail`` — they document the remaining work
 and will start passing (reported as XPASS) once the gaps are closed.
 """
 
-import pytest
-
 from disco_server.core.services.track_library import TrackLibrary
 
 
@@ -92,10 +90,6 @@ def test_update_track_changes_in_memory_state(library, make_track):
     assert library.get_track("song1").cue_time == 99
 
 
-@pytest.mark.xfail(
-    reason="update_track does not yet write changes to the database (in-memory only)",
-    strict=False,
-)
 def test_update_track_persists_to_database(library, make_track):
     library.create_track(make_track(name="song1", cue_time=10))
     library.update_track("song1", make_track(name="song1", path="/music/new.mp3", cue_time=99))
@@ -111,12 +105,6 @@ def test_delete_track_returns_false_when_not_a_member(library, make_track):
     assert library.delete_track(make_track(name="ghost")) is False
 
 
-@pytest.mark.xfail(
-    reason="delete_track passes a fresh (transient) DTO to session.delete(), "
-           "raising InvalidRequestError instead of removing the row",
-    strict=False,
-    raises=Exception,
-)
 def test_delete_track_removes_from_library(library, make_track):
     library.create_track(make_track(name="song1"))
     track = library.get_track("song1")
@@ -125,11 +113,6 @@ def test_delete_track_removes_from_library(library, make_track):
     assert library.get_track("song1") is None
 
 
-@pytest.mark.xfail(
-    reason="delete_track raises before the row is removed; deletion is not persisted",
-    strict=False,
-    raises=Exception,
-)
 def test_delete_track_persists_to_database(library, make_track):
     library.create_track(make_track(name="song1"))
     reloaded = reload(library)
@@ -140,11 +123,6 @@ def test_delete_track_persists_to_database(library, make_track):
     assert reload(library).get_track("song1") is None
 
 
-@pytest.mark.xfail(
-    reason="full CRUD is not complete: update is not persisted and delete raises",
-    strict=False,
-    raises=Exception,
-)
 def test_full_crud_lifecycle_through_database(library, make_track):
     # Create
     library.create_track(make_track(name="song1", path="/music/a.mp3", cue_time=5))
