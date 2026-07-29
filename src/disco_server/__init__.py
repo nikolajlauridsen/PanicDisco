@@ -1,10 +1,10 @@
 import os
 
 import click
-from flask import Flask, jsonify
+from flask import Flask
 
+from disco_server.blueprints.tracks import bp as tracks_bp
 from disco_server.core.database.database import Database
-from disco_server.services import get_track_library
 
 def create_app(test_config: dict | None = None):
     app = Flask(__name__, instance_relative_config=True)
@@ -32,10 +32,7 @@ def create_app(test_config: dict | None = None):
     def hello():
         return 'Hello, World!'
 
-    @app.route('/tracks')
-    def list_tracks():
-        library = get_track_library()
-        return jsonify([track.name for track in library.get_tracks()])
+    app.register_blueprint(tracks_bp)
 
     return app
 
