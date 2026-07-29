@@ -6,4 +6,5 @@ class Track:
     path: str
     name: str
     cue_time: int | None
+    id: int
 

@@ -10,10 +10,11 @@ class TrackDTO(Base):
     path: Mapped[str] = mapped_column()
     cue_point: Mapped[int] = mapped_column()
 
-    def __init__(self, name: str, path: str, cue_point: int) -> None:
+    def __init__(self, id : int | None, name: str, path: str, cue_point: int | None) -> None:
         self.name = name
         self.path = path
         self.cue_point = cue_point
+        self.id = id
 
     def __repr__(self) -> str:
         return f'Track: {self.name}'

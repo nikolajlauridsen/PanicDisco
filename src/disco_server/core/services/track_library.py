@@ -11,15 +11,24 @@ class TrackLibrary:
 
     @staticmethod
     def _map_to_dto(track : Track) -> TrackDTO:
-        return TrackDTO(name=track.name, path=track.path, cue_point=track.cue_time)
+        return TrackDTO(
+            id=track.id,
+            name=track.name,
+            path=track.path,
+            cue_point=track.cue_time)
 
     @staticmethod
     def _map_from_dto(dto: TrackDTO) -> Track:
-        return Track(name=dto.name, path=dto.path, cue_time=dto.cue_point)
+        return Track(
+            id=dto.id,
+            name=dto.name,
+            path=dto.path,
+            cue_time=dto.cue_point)
 
     def create_track(self, track : Track) -> None:
         """Add a new track to the library."""
-        self.database.add_track(self._map_to_dto(track))
+        persisted_track = self.database.add_track(self._map_to_dto(track))
+        track.id = persisted_track.id
         self._tracks.append(track)
 
     def delete_track(self, track : Track) -> bool:
@@ -31,6 +40,7 @@ class TrackLibrary:
         if track not in self._tracks:
             return False
 
+        self.database.remove_track(self._map_to_dto(track))
         self._tracks.remove(track)
         return True
 

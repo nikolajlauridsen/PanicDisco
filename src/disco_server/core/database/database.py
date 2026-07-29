@@ -17,8 +17,13 @@ class Database:
         print('Initializing database...')
         Base.metadata.create_all(bind=self._engine)
 
-    def add_track(self, track: TrackDTO) -> None:
+    def add_track(self, track: TrackDTO) -> TrackDTO:
         self.db_sessions.add(track)
+        self.db_sessions.commit()
+        return track
+
+    def remove_track(self, track: TrackDTO) -> None:
+        self.db_sessions.delete(track)
         self.db_sessions.commit()
 
     def get_tracks(self) -> list[TrackDTO]:

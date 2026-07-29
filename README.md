@@ -24,3 +24,10 @@ Panic at the disco!
    ```
    python tests/manual/boombox.py
    ```
+### Tests
+
+Run tests with 
+
+```
+python3 -m pytest tests/integration -v
+```
