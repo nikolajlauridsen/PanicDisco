@@ -16,6 +16,7 @@ def create_library(database, directory : str, files: list[str]) -> TrackLibrary:
     return library
 
 app = create_app()
+app.database.init_db()
 
 directory = input("Chose directory to play from: ")
 files = [file for file in os.listdir(directory) if file.endswith(".mp3")]

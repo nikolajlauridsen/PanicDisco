@@ -1,5 +1,6 @@
 import os
 
+import click
 from flask import Flask
 
 from disco_server.core.database.database import Database
@@ -19,7 +20,12 @@ def create_app(test_config: dict | None = None):
         app.config.from_mapping(test_config)
 
     app.database = Database(db_path=app.config['DATABASE_PATH'])
-    app.database.init_db()
+
+    @app.cli.command('init-db')
+    def init_db_command():
+        """Create database tables that don't already exist yet."""
+        app.database.init_db()
+        click.echo('Initialized the database.')
 
     @app.route('/hello')
     def hello():

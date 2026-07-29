@@ -16,11 +16,15 @@ Panic at the disco!
    ```
    pip install -e .
    ```
-4. Run the Flask app:
+4. Initialize the database (creates tables that don't already exist yet; safe to re-run):
+   ```
+   flask --app disco_server init-db
+   ```
+5. Run the Flask app:
    ```
    flask --app disco_server run
    ```
-5. Manual/exploratory test scripts live under `tests/manual/` (e.g. `tests/manual/boombox.py`). Run them directly with the venv active:
+6. Manual/exploratory test scripts live under `tests/manual/` (e.g. `tests/manual/boombox.py`). Run them directly with the venv active:
    ```
    python tests/manual/boombox.py
    ```
