@@ -1,18 +1,11 @@
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import mapped_column
-
-from disco_server.core.database.dtos.base import Base
+from dataclasses import dataclass, field
 
 
-class Track(Base):
-    """A track, both the domain model and the persisted database row."""
+@dataclass
+class Track:
+    """A track, keyed by id — names aren't unique, so equality only compares id."""
 
-    __tablename__ = 'track'
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column()
-    path: Mapped[str] = mapped_column()
-    cue_time: Mapped[int | None] = mapped_column()
-
-    def __repr__(self) -> str:
-        return f'Track: {self.name}'
+    name: str = field(compare=False)
+    path: str = field(compare=False)
+    cue_time: int | None = field(default=None, compare=False)
+    id: int | None = None

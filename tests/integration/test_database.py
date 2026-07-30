@@ -39,3 +39,28 @@ def test_get_track_reads_tracks_persisted_by_a_different_database_instance(datab
     assert fetched is not None
     assert fetched.path == "/music/song1.mp3"
     assert fetched.cue_time == 7
+
+
+def test_add_track_result_is_readable_after_session_is_torn_down(database, make_track):
+    """Regression test for DetachedInstanceError: Database must hand back a
+    plain domain Track with no SQLAlchemy session ties, so attribute reads
+    must never depend on the originating session still being alive (e.g.
+    after another thread's scoped_session.remove(), or a request-scoped
+    session ending).
+    """
+    track = database.add_track(make_track(name="song1", cue_time=5))
+
+    database.db_sessions.remove()
+
+    assert track.name == "song1"
+    assert track.cue_time == 5
+
+
+def test_get_track_result_is_readable_after_session_is_torn_down(database, make_track):
+    track = database.add_track(make_track(name="song1", cue_time=5))
+
+    fetched = database.get_track(track.id)
+    database.db_sessions.remove()
+
+    assert fetched.name == "song1"
+    assert fetched.cue_time == 5

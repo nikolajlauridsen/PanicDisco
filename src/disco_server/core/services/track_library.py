@@ -16,10 +16,10 @@ class TrackLibrary:
     def delete_track(self, track : Track) -> bool:
         """Remove a track from the library.
 
-        ``track`` must be the same object held in the in-memory list
-        (checked by identity, not by field equality) for the delete to
-        proceed; the database delete itself re-fetches by id so it works
-        regardless of which session/thread loaded ``track``.
+        ``track`` must share its id with an entry in the in-memory list
+        (``Track`` equality only compares id, not other fields) for the
+        delete to proceed; the database delete itself re-fetches by id so it
+        works regardless of which session/thread loaded ``track``.
 
         Returns true if track was removed.
         """
@@ -46,29 +46,26 @@ class TrackLibrary:
         """Replace the track matching track_id with the given track's data.
 
         Names aren't unique, so matching by id avoids ambiguity when
-        duplicate-named tracks exist. The existing track is re-fetched from
-        the database (rather than mutating whatever object is in the
-        in-memory list) so this works regardless of which session/thread
-        loaded the in-memory copy; the in-memory list is then updated to
-        hold that same fetched instance, so any other reference to the old
-        in-memory object won't see the change.
+        duplicate-named tracks exist. The update is delegated to the
+        database (rather than mutating whatever object is in the in-memory
+        list), so this works regardless of which session/thread loaded the
+        in-memory copy; the in-memory list is then updated to hold the
+        object the database returns, so any other reference to the old
+        in-memory object won't see the change. ``Track`` equality only
+        compares id, so ``list.index`` finds the stale entry even though its
+        other fields differ from ``updated_track``.
 
         returns true if track was updated.
         """
-        existing_track = self.database.get_track(track_id)
-        if existing_track is None:
+        updated_track = self.database.update_track(track_id, track)
+        if updated_track is None:
             return False
 
-        existing_track.cue_time = track.cue_time
-        existing_track.name = track.name
-        existing_track.path = track.path
-        self.database.save_changes()
-
-        found_index = None
-        for memory_track, index in zip(self._tracks, range(len(self._tracks))):
-            if memory_track.id == track_id:
-                found_index = index
+        try:
+            found_index = self._tracks.index(updated_track)
+        except ValueError:
+            found_index = None
 
         if found_index is not None:
-            self._tracks[found_index] = existing_track
+            self._tracks[found_index] = updated_track
         return True

@@ -162,15 +162,28 @@ def test_update_track_updates_only_the_matching_id_when_names_duplicated(library
     assert dupes[second_id].cue_time == 99
 
 
+def test_track_equality_is_id_based_not_field_based(make_track):
+    """Track equality only compares id (names aren't unique, so field values
+    can't be the identity key) — two tracks sharing an id are the same track
+    even if their other fields have diverged, while two tracks with
+    different ids are never equal, even with identical other fields."""
+    a = make_track(name="song1", path="/music/a.mp3", cue_time=5, id=1)
+    b = make_track(name="song2", path="/music/b.mp3", cue_time=99, id=1)
+    c = make_track(name="song1", path="/music/a.mp3", cue_time=5, id=2)
+
+    assert a == b
+    assert a != c
+
+
 def test_delete_track_returns_false_when_not_a_member(library, make_track):
     # Never added to the library, so there is nothing to remove.
     assert library.delete_track(make_track(name="ghost")) is False
 
 
 def test_delete_track_with_matching_data_but_different_instance_returns_false(library, make_track):
-    """delete_track matches by object identity, not by field equality — a
-    track built with the same name/path/cue_time as a stored one is still a
-    different instance and won't be treated as a member.
+    """Track equality only compares id — a track built with the same
+    name/path/cue_time as a stored one but no (or a different) id is not
+    treated as a member.
     """
     track = make_track(name="song1", path="/music/a.mp3", cue_time=5)
     library.create_track(track)
