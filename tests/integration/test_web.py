@@ -36,8 +36,20 @@ def test_index_page_renders_a_preview_button_pointing_at_the_track_file(app):
 
     assert response.status_code == 200
     assert f'data-src="/api/tracks/{track_id}/file"' in body
+    assert 'data-cue-point="5"' in body
     assert "preview-toggle" in body
     assert "Play" in body
+
+
+def test_index_page_renders_zero_cue_point_when_track_has_none(app):
+    with app.app_context():
+        services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=None))
+
+    response = app.test_client().get("/")
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert 'data-cue-point="0"' in body
 
 
 def test_tracks_js_is_served_as_a_static_file(app):

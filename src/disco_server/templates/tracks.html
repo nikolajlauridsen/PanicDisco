@@ -33,6 +33,7 @@
             <button type="button"
                     class="preview-toggle rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700"
                     data-src="{{ url_for('tracks.get_track_file', track_id=track.id) }}"
+                    data-cue-point="{{ track.cue_time or 0 }}"
                     aria-pressed="false">
               Play
             </button>

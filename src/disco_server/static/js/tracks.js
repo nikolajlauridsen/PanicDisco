@@ -25,7 +25,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       audio.src = button.dataset.src;
-      audio.play();
+      const cuePoint = Number(button.dataset.cuePoint || 0);
+      audio.addEventListener('loadedmetadata', () => {
+        audio.currentTime = cuePoint;
+        audio.play();
+      }, { once: true });
       activeButton = button;
       button.textContent = 'Stop';
       button.setAttribute('aria-pressed', 'true');
