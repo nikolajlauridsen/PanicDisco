@@ -15,6 +15,11 @@ def test_apispec_json_documents_the_tracks_routes(tmp_path):
     assert "put" in spec["paths"]["/api/tracks/{track_id}"]
     assert "delete" in spec["paths"]["/api/tracks/{track_id}"]
     assert "post" in spec["paths"]["/api/tracks/upload"]
+    assert "put" in spec["paths"]["/api/boombox/load/{track_id}"]
+    assert "put" in spec["paths"]["/api/boombox/play"]
+    assert "put" in spec["paths"]["/api/boombox/stop"]
+    assert "put" in spec["paths"]["/api/boombox/pause"]
+    assert "put" in spec["paths"]["/api/boombox/resume"]
 
 
 def test_apidocs_ui_is_served(tmp_path):

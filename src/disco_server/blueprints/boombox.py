@@ -13,6 +13,23 @@ def not_loaded():
 
 @bp.route('/load/<int:track_id>', methods=['PUT'])
 def load_track(track_id):
+    """Load a track into the boombox.
+    ---
+    tags:
+      - boombox
+    parameters:
+      - name: track_id
+        in: path
+        type: integer
+        required: true
+    responses:
+      200:
+        description: Track loaded
+      404:
+        description: Track not found
+        schema:
+          $ref: '#/definitions/Error'
+    """
     library = get_track_library()
     track = library.get_track(track_id)
     if track is None:
@@ -24,6 +41,18 @@ def load_track(track_id):
 
 @bp.route('/play', methods=['PUT'])
 def play():
+    """Start playback of the loaded track.
+    ---
+    tags:
+      - boombox
+    responses:
+      200:
+        description: Playback started
+      503:
+        description: No track is loaded
+        schema:
+          $ref: '#/definitions/Error'
+    """
     boombox = get_boombox()
     if not boombox.is_loaded():
         return not_loaded()
@@ -33,6 +62,18 @@ def play():
 
 @bp.route('/stop', methods=['PUT'])
 def stop():
+    """Stop playback of the loaded track.
+    ---
+    tags:
+      - boombox
+    responses:
+      200:
+        description: Playback stopped
+      503:
+        description: No track is loaded
+        schema:
+          $ref: '#/definitions/Error'
+    """
     boombox = get_boombox()
     if not boombox.is_loaded():
         return not_loaded()
@@ -42,6 +83,18 @@ def stop():
 
 @bp.route('/pause', methods=['PUT'])
 def pause():
+    """Pause playback of the loaded track.
+    ---
+    tags:
+      - boombox
+    responses:
+      200:
+        description: Playback paused
+      503:
+        description: No track is loaded
+        schema:
+          $ref: '#/definitions/Error'
+    """
     boombox = get_boombox()
     if not boombox.is_loaded():
         return not_loaded()
@@ -51,6 +104,18 @@ def pause():
 
 @bp.route('/resume', methods=['PUT'])
 def resume():
+    """Resume playback of the loaded track.
+    ---
+    tags:
+      - boombox
+    responses:
+      200:
+        description: Playback resumed
+      503:
+        description: No track is loaded
+        schema:
+          $ref: '#/definitions/Error'
+    """
     boombox = get_boombox()
     if not boombox.is_loaded():
         return not_loaded()
