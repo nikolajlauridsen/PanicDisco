@@ -2,6 +2,7 @@ import pytest
 
 from disco_server import create_app, services
 from disco_server.core.models.track import Track
+from disco_server.core.services import file_manager
 
 
 @pytest.fixture
@@ -74,7 +75,10 @@ def test_update_track_endpoint_returns_404_when_track_missing(app):
     assert response.get_json() == {"error": "Track not found", "status_code": 404}
 
 
-def test_delete_track_endpoint_removes_track_and_returns_204(app):
+def test_delete_track_endpoint_removes_track_and_returns_204(app, monkeypatch):
+    removed_paths = []
+    monkeypatch.setattr(file_manager, "remove", removed_paths.append)
+
     with app.app_context():
         services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=5))
         track_id = services.get_track_library().get_tracks()[0].id
@@ -82,6 +86,7 @@ def test_delete_track_endpoint_removes_track_and_returns_204(app):
     response = app.test_client().delete(f"/api/tracks/{track_id}")
 
     assert response.status_code == 204
+    assert removed_paths == ["/music/song1.mp3"]
 
     with app.app_context():
         assert services.get_track_library().get_track(track_id) is None

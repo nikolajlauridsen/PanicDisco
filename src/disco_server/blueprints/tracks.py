@@ -3,7 +3,7 @@ import uuid
 
 from flask import Blueprint, current_app, jsonify, request, url_for
 
-from disco_server.core.models.track import Track
+from disco_server.core.services import file_manager
 from disco_server.services import get_track_library
 from disco_server.web.mapping import mapper
 from disco_server.web.view_models.request_models.track_update import TrackUpdate
@@ -116,7 +116,7 @@ def delete_track(track_id):
     if track is None:
         return not_found()
 
-    os.remove(track.path)
+    file_manager.remove(track.path)
     library.delete_track(track)
     return '', 204
 
@@ -164,6 +164,6 @@ def upload_track():
     library = get_track_library()
     track = mapper.map_upload_to_track(track_upload, path)
     library.create_track(track)
-    request.files['file'].save(path)
+    file_manager.save(request.files['file'], path)
 
     return '', 201, {'Location': url_for('tracks.get_track', track_id=track.id)}
