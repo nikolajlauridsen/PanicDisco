@@ -1,3 +1,5 @@
+import io
+
 import pytest
 
 from disco_server import create_app, services
@@ -8,7 +10,10 @@ from disco_server.core.services import file_manager
 @pytest.fixture
 def app(tmp_path):
     """A Flask app wired to a fresh, initialised database."""
-    app = create_app({"DATABASE_PATH": str(tmp_path / "test.db")})
+    app = create_app({
+        "DATABASE_PATH": str(tmp_path / "test.db"),
+        "UPLOAD_FOLDER": str(tmp_path / "uploads"),
+    })
     app.database.init_db()
     return app
 
@@ -98,3 +103,117 @@ def test_delete_track_endpoint_returns_404_when_track_missing(app):
 
     assert response.status_code == 404
     assert response.get_json() == {"error": "Track not found", "status_code": 404}
+
+
+def test_upload_track_endpoint_creates_track_and_returns_201(app, monkeypatch):
+    saved = []
+    monkeypatch.setattr(file_manager, "save", lambda file, path: saved.append((file.filename, path)))
+
+    response = app.test_client().post(
+        "/api/tracks/upload",
+        data={
+            "file": (io.BytesIO(b"fake mp3 bytes"), "song1.mp3"),
+            "name": "song1",
+            "cue_point": "5",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 201
+    assert len(saved) == 1
+    saved_filename, saved_path = saved[0]
+    assert saved_filename == "song1.mp3"
+    assert saved_path.startswith(app.config["UPLOAD_FOLDER"])
+    assert saved_path.endswith(".mp3")
+
+    with app.app_context():
+        tracks = services.get_track_library().get_tracks()
+
+    assert len(tracks) == 1
+    created_track = tracks[0]
+    assert created_track.name == "song1"
+    assert created_track.cue_time == 5
+    assert created_track.path == saved_path
+    assert response.headers["Location"] == f"/api/tracks/{created_track.id}"
+
+
+def test_upload_track_endpoint_returns_400_for_unsupported_format(app, monkeypatch):
+    saved = []
+    monkeypatch.setattr(file_manager, "save", lambda file, path: saved.append(path))
+
+    response = app.test_client().post(
+        "/api/tracks/upload",
+        data={
+            "file": (io.BytesIO(b"not audio"), "notes.txt"),
+            "name": "song1",
+            "cue_point": "5",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "File format not supported", "status_code": 400}
+    assert saved == []
+
+    with app.app_context():
+        assert services.get_track_library().get_tracks() == []
+
+
+@pytest.mark.parametrize("extension", ["mp3", "wav", "flac"])
+def test_upload_track_endpoint_accepts_all_supported_formats(app, monkeypatch, extension):
+    saved = []
+    monkeypatch.setattr(file_manager, "save", lambda file, path: saved.append(path))
+
+    response = app.test_client().post(
+        "/api/tracks/upload",
+        data={
+            "file": (io.BytesIO(b"fake audio bytes"), f"song1.{extension}"),
+            "name": "song1",
+            "cue_point": "5",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 201
+    assert len(saved) == 1
+    assert saved[0].endswith(f".{extension}")
+
+
+def test_upload_track_endpoint_returns_400_when_file_missing(app, monkeypatch):
+    saved = []
+    monkeypatch.setattr(file_manager, "save", lambda file, path: saved.append(path))
+
+    response = app.test_client().post(
+        "/api/tracks/upload",
+        data={"name": "song1", "cue_point": "5"},
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "No file uploaded", "status_code": 400}
+    assert saved == []
+
+    with app.app_context():
+        assert services.get_track_library().get_tracks() == []
+
+
+def test_upload_track_endpoint_returns_400_for_invalid_metadata(app, monkeypatch):
+    saved = []
+    monkeypatch.setattr(file_manager, "save", lambda file, path: saved.append(path))
+
+    response = app.test_client().post(
+        "/api/tracks/upload",
+        data={
+            "file": (io.BytesIO(b"fake mp3 bytes"), "song1.mp3"),
+            "name": "song1",
+            "cue_point": "not-a-number",
+        },
+        content_type="multipart/form-data",
+    )
+
+    assert response.status_code == 400
+    assert response.get_json() == {"error": "Invalid track metadata", "status_code": 400}
+    assert saved == []
+
+    with app.app_context():
+        assert services.get_track_library().get_tracks() == []
