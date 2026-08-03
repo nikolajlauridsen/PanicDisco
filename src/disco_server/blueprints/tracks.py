@@ -153,11 +153,11 @@ def upload_track():
         schema:
           $ref: '#/definitions/Error'
     """
-    format = request.files['file'].name.split('.')[-1]
+    format = request.files['file'].filename.split('.')[-1]
     if format != 'mp3':
         return jsonify(Error('File format not supported', 400)), 400
 
-    track_upload = TrackUpload(request.form)
+    track_upload = TrackUpload.model_validate(request.form.to_dict())
     path = os.path.join(current_app.config['UPLOAD_FOLDER'], f"{uuid.uuid4().hex}.{format}")
 
     track = Track(
@@ -169,4 +169,4 @@ def upload_track():
     library.create_track(track)
     request.files['file'].save(path)
 
-    return None, 201, {'Location': url_for('tracks.get_track', track_id=track.id)}
+    return '', 201, {'Location': url_for('tracks.get_track', track_id=track.id)}
