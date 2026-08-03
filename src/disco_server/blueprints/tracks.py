@@ -30,7 +30,7 @@ def list_tracks():
             type: string
     """
     library = get_track_library()
-    return jsonify([track.name for track in library.get_tracks()])
+    return jsonify([mapper.map_to_track_entity(track) for track in library.get_tracks()])
 
 @bp.route('/tracks/<int:track_id>', methods=['GET'])
 def get_track(track_id):
