@@ -7,11 +7,8 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
   <main class="mx-auto max-w-7xl px-4 py-8">
-    <div class="flex items-center justify-between mb-6">
+    <div class="mb-6">
       <h1 class="text-2xl font-semibold">Upload track</h1>
-      <a href="{{ url_for('web.index') }}" class="text-sm text-indigo-600 hover:text-indigo-700">
-        Back to tracks
-      </a>
     </div>
 
     <form id="upload-form"
@@ -51,12 +48,23 @@
 
       <div id="upload-error" class="hidden rounded bg-red-50 px-3 py-2 text-sm text-red-600" role="alert"></div>
 
-      <button type="submit" id="submit-btn" disabled
-              class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 disabled:bg-gray-300">
-        Upload
-      </button>
+      <div class="flex items-center justify-between">
+        <button type="submit" id="submit-btn" disabled
+                class="rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 disabled:bg-gray-300">
+          Upload
+        </button>
+        <a href="{{ url_for('web.index') }}"
+           class="rounded border border-gray-300 px-4 py-2 text-sm hover:bg-gray-100">
+          Back to tracks
+        </a>
+      </div>
     </form>
   </main>
+
+  <div id="toast"
+       class="hidden fixed bottom-6 right-6 rounded-lg bg-green-600 px-6 py-4 text-lg text-white shadow-lg"
+       role="status"></div>
+
   <script src="{{ url_for('static', filename='js/upload.js') }}" defer></script>
 </body>
 </html>

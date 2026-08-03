@@ -9,9 +9,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const cuePointInput = document.getElementById('cue-point-input');
   const submitBtn = document.getElementById('submit-btn');
   const errorBox = document.getElementById('upload-error');
+  const toast = document.getElementById('toast');
 
   const ACCEPTED_EXTENSIONS = ['mp3', 'wav', 'flac'];
+  const DEFAULT_DROP_ZONE_TEXT = 'Drag an audio file here, or click to browse';
   let selectedFile = null;
+  let toastTimer = null;
+
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.add('hidden'), 3000);
+  }
 
   function formatCuePoint(seconds) {
     const minutes = Math.floor(seconds / 60);
@@ -63,6 +73,20 @@ document.addEventListener('DOMContentLoaded', () => {
     previewPlayer.classList.remove('hidden');
     markCueBtn.disabled = false;
     resetCuePoint();
+  }
+
+  function resetForm() {
+    form.reset();
+    if (previewPlayer.src) {
+      URL.revokeObjectURL(previewPlayer.src);
+    }
+    previewPlayer.removeAttribute('src');
+    previewPlayer.classList.add('hidden');
+    dropZoneText.textContent = DEFAULT_DROP_ZONE_TEXT;
+    selectedFile = null;
+    markCueBtn.disabled = true;
+    resetCuePoint();
+    clearError();
   }
 
   dropZone.addEventListener('click', () => fileInput.click());
@@ -117,7 +141,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch(form.dataset.uploadUrl, { method: 'POST', body: formData });
 
       if (response.status === 201) {
-        window.location.href = '/';
+        showToast('Track uploaded.');
+        resetForm();
         return;
       }
 

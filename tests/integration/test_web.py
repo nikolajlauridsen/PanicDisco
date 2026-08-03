@@ -132,6 +132,8 @@ def test_upload_page_renders_the_drop_zone_and_form_fields(app):
     assert 'id="mark-cue-btn"' in body
     assert 'id="submit-btn"' in body
     assert 'data-upload-url="/api/tracks/upload"' in body
+    assert 'id="toast"' in body
+    assert 'href="/"' in body
 
 
 def test_upload_js_is_served_as_a_static_file(app):
@@ -140,3 +142,5 @@ def test_upload_js_is_served_as_a_static_file(app):
     assert response.status_code == 200
     assert b"FormData" in response.data
     assert b"handleFileSelected" in response.data
+    assert b"showToast" in response.data
+    assert b"resetForm" in response.data
