@@ -5,6 +5,7 @@ from flasgger import Swagger
 from flask import Flask
 
 from disco_server.blueprints.tracks import bp as tracks_bp
+from disco_server.blueprints.web import bp as web_bp
 from disco_server.core.database.database import Database
 from disco_server.web.json_provider import PydanticJSONProvider
 from disco_server.web.swagger_template import build_swagger_template
@@ -35,6 +36,7 @@ def create_app(test_config: dict | None = None):
         click.echo('Initialized the database.')
 
     app.register_blueprint(tracks_bp)
+    app.register_blueprint(web_bp)
 
     Swagger(app, template=build_swagger_template())
 

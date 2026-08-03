@@ -65,6 +65,10 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
+# Node / Tailwind CSS build output
+node_modules/
+src/disco_server/static/css/tailwind.css
+
 # Scrapy stuff:
 .scrapy
 
