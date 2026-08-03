@@ -116,6 +116,7 @@ def delete_track(track_id):
     if track is None:
         return not_found()
 
+    os.remove(track.path)
     library.delete_track(track)
     return '', 204
 
