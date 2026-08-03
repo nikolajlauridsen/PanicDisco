@@ -121,6 +121,38 @@ def delete_track(track_id):
 
 @bp.route('/tracks/upload', methods=['POST'], )
 def upload_track():
+    """Upload an mp3 file and create a track from it.
+    ---
+    tags:
+      - tracks
+    consumes:
+      - multipart/form-data
+    parameters:
+      - name: file
+        in: formData
+        type: file
+        required: true
+        description: The mp3 file to upload.
+      - name: name
+        in: formData
+        type: string
+        required: true
+      - name: cue_point
+        in: formData
+        type: integer
+        required: true
+    responses:
+      201:
+        description: Track created
+        headers:
+          Location:
+            type: string
+            description: URL of the created track
+      400:
+        description: File format not supported
+        schema:
+          $ref: '#/definitions/Error'
+    """
     format = request.files['file'].name.split('.')[-1]
     if format != 'mp3':
         return jsonify(Error('File format not supported', 400)), 400

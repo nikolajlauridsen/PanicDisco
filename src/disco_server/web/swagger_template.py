@@ -25,6 +25,14 @@ def build_swagger_template() -> dict:
                 },
                 'required': ['name', 'cue_point', 'path'],
             },
+            'TrackUpload': {
+                'type': 'object',
+                'properties': {
+                    'name': {'type': 'string'},
+                    'cue_point': {'type': 'integer'},
+                },
+                'required': ['name', 'cue_point'],
+            },
             'Error': {
                 'type': 'object',
                 'properties': {
