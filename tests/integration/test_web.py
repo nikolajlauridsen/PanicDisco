@@ -72,6 +72,25 @@ def test_tracks_js_is_served_as_a_static_file(app):
     assert response.status_code == 200
     assert b"preview-toggle" in response.data
     assert b"track-delete" in response.data
+    assert b"edit-save" in response.data
+    assert b"PUT" in response.data
+
+
+def test_index_page_renders_an_edit_button_and_accordion_row(app):
+    with app.app_context():
+        services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=5))
+        track_id = services.get_track_library().get_tracks()[0].id
+
+    response = app.test_client().get("/")
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert f'data-update-url="/api/tracks/{track_id}"' in body
+    assert "track-edit" in body
+    assert 'class="edit-row hidden"' in body
+    assert f'data-path="/music/song1.mp3"' in body
+    assert 'value="song1"' in body
+    assert f'src="/api/tracks/{track_id}/file"' in body
 
 
 def test_index_page_renders_cue_point_as_minutes_seconds(app):

@@ -39,13 +39,52 @@
               Play
             </button>
           </td>
-          <td class="px-4 py-2">
+          <td class="px-4 py-2 space-x-2">
+            <button type="button"
+                    class="track-edit rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700"
+                    data-update-url="{{ url_for('tracks.update_track', track_id=track.id) }}">
+              Edit
+            </button>
             <button type="button"
                     class="track-delete rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
                     data-delete-url="{{ url_for('tracks.delete_track', track_id=track.id) }}"
                     data-name="{{ track.name }}">
               Delete
             </button>
+          </td>
+        </tr>
+        <tr class="edit-row hidden" data-path="{{ track.path }}">
+          <td colspan="4" class="px-4 py-4 bg-gray-50">
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input type="text" class="edit-name w-full rounded border border-gray-300 px-3 py-2"
+                       value="{{ track.name }}">
+              </div>
+              <div>
+                <audio controls preload="none" class="edit-audio w-full"
+                       src="{{ url_for('tracks.get_track_file', track_id=track.id) }}"></audio>
+                <div class="mt-2 flex items-center gap-3">
+                  <button type="button"
+                          class="edit-mark-cue rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700">
+                    Mark cue point here
+                  </button>
+                  <label class="text-sm text-gray-700">Cue point (seconds):</label>
+                  <input type="number" class="edit-cue-point w-20 rounded border border-gray-300 px-2 py-1 text-sm"
+                         min="0" step="1" value="{{ track.cue_time or 0 }}">
+                  <span class="text-sm text-gray-500">(<span class="edit-cue-display">{{ (track.cue_time or 0) | cue_point }}</span>)</span>
+                </div>
+              </div>
+              <div class="edit-error hidden rounded bg-red-50 px-3 py-2 text-sm text-red-600" role="alert"></div>
+              <div class="flex gap-3">
+                <button type="button" class="edit-save rounded bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700">
+                  Save
+                </button>
+                <button type="button" class="edit-cancel rounded border border-gray-300 px-4 py-2 hover:bg-gray-100">
+                  Cancel
+                </button>
+              </div>
+            </div>
           </td>
         </tr>
         {% endfor %}
