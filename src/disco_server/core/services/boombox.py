@@ -23,6 +23,10 @@ class Boombox:
         if self.loaded_track is None:
             raise RuntimeError("Boombox not loaded")
 
+    def is_loaded(self) -> bool:
+        """Return true if the track is loaded."""
+        return self.loaded_track is not None
+
     def load_track(self, track: Track) -> None:
         """Load `track`.
 
