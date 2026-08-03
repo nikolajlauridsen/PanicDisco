@@ -16,6 +16,14 @@ def build_swagger_template() -> dict:
                 },
                 'required': ['id', 'name', 'path'],
             },
+            'TrackEntity': {
+                'type': 'object',
+                'properties': {
+                    'id': {'type': 'integer'},
+                    'name': {'type': 'string'},
+                },
+                'required': ['id', 'name'],
+            },
             'TrackUpdate': {
                 'type': 'object',
                 'properties': {

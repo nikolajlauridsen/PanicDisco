@@ -18,17 +18,17 @@ def not_found():
 
 @bp.route('/tracks')
 def list_tracks():
-    """List all track names.
+    """List all tracks.
     ---
     tags:
       - tracks
     responses:
       200:
-        description: Track names
+        description: Tracks
         schema:
           type: array
           items:
-            type: string
+            $ref: '#/definitions/TrackEntity'
     """
     library = get_track_library()
     return jsonify([mapper.map_to_track_entity(track) for track in library.get_tracks()])
