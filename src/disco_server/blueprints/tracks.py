@@ -2,6 +2,7 @@ import os.path
 import uuid
 
 from flask import Blueprint, current_app, jsonify, request, url_for
+from pydantic import ValidationError
 
 from disco_server.core.services import file_manager
 from disco_server.services import get_track_library
@@ -150,20 +151,28 @@ def upload_track():
             type: string
             description: URL of the created track
       400:
-        description: File format not supported
+        description: No file uploaded, unsupported file format, or invalid track metadata
         schema:
           $ref: '#/definitions/Error'
     """
-    format = request.files['file'].filename.split('.')[-1]
+    file = request.files.get('file')
+    if file is None:
+        return jsonify(Error('No file uploaded', 400)), 400
+
+    format = file.filename.split('.')[-1]
     if format not in ['mp3', 'flac', 'wav']:
         return jsonify(Error('File format not supported', 400)), 400
 
-    track_upload = TrackUpload.model_validate(request.form.to_dict())
+    try:
+        track_upload = TrackUpload.model_validate(request.form.to_dict())
+    except ValidationError:
+        return jsonify(Error('Invalid track metadata', 400)), 400
+
     path = os.path.join(current_app.config['UPLOAD_FOLDER'], f"{uuid.uuid4().hex}.{format}")
 
     library = get_track_library()
     track = mapper.map_upload_to_track(track_upload, path)
     library.create_track(track)
-    file_manager.save(request.files['file'], path)
+    file_manager.save(file, path)
 
     return '', 201, {'Location': url_for('tracks.get_track', track_id=track.id)}
