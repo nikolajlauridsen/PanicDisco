@@ -15,6 +15,7 @@
         <tr>
           <th class="px-4 py-2 font-medium text-gray-500">Name</th>
           <th class="px-4 py-2 font-medium text-gray-500">Cue point</th>
+          <th class="px-4 py-2 font-medium text-gray-500">Preview</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200">
@@ -22,6 +23,14 @@
         <tr>
           <td class="px-4 py-2">{{ track.name }}</td>
           <td class="px-4 py-2">{{ track.cue_time if track.cue_time is not none else '—' }}</td>
+          <td class="px-4 py-2">
+            <button type="button"
+                    class="preview-toggle rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700"
+                    data-src="{{ url_for('tracks.get_track_file', track_id=track.id) }}"
+                    aria-pressed="false">
+              Play
+            </button>
+          </td>
         </tr>
         {% endfor %}
       </tbody>
@@ -30,5 +39,6 @@
     <p class="text-gray-500">No tracks yet.</p>
     {% endif %}
   </main>
+  <script src="{{ url_for('static', filename='js/tracks.js') }}" defer></script>
 </body>
 </html>

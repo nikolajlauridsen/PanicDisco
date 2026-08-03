@@ -23,3 +23,24 @@ def test_index_page_lists_tracks_from_the_injected_library(app):
 
     assert response.status_code == 200
     assert b"song1" in response.data
+
+
+def test_index_page_renders_a_preview_button_pointing_at_the_track_file(app):
+    with app.app_context():
+        services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=5))
+        track_id = services.get_track_library().get_tracks()[0].id
+
+    response = app.test_client().get("/")
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert f'data-src="/api/tracks/{track_id}/file"' in body
+    assert "preview-toggle" in body
+    assert "Play" in body
+
+
+def test_tracks_js_is_served_as_a_static_file(app):
+    response = app.test_client().get("/static/js/tracks.js")
+
+    assert response.status_code == 200
+    assert b"preview-toggle" in response.data

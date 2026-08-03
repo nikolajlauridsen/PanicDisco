@@ -52,6 +52,40 @@ def test_get_track_endpoint_returns_404_when_track_missing(app):
     assert response.get_json() == {"error": "Track not found", "status_code": 404}
 
 
+def test_get_track_file_endpoint_serves_the_uploaded_file(app):
+    upload_folder = app.config["UPLOAD_FOLDER"]
+    file_path = f"{upload_folder}/song1.mp3"
+    with open(file_path, "wb") as f:
+        f.write(b"fake mp3 bytes")
+
+    with app.app_context():
+        services.get_track_library().create_track(Track(name="song1", path=file_path, cue_time=5))
+        track_id = services.get_track_library().get_tracks()[0].id
+
+    response = app.test_client().get(f"/api/tracks/{track_id}/file")
+
+    assert response.status_code == 200
+    assert response.data == b"fake mp3 bytes"
+
+
+def test_get_track_file_endpoint_returns_404_when_track_missing(app):
+    response = app.test_client().get("/api/tracks/9999/file")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "Track not found", "status_code": 404}
+
+
+def test_get_track_file_endpoint_returns_404_when_path_is_outside_the_upload_folder(app):
+    with app.app_context():
+        services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=5))
+        track_id = services.get_track_library().get_tracks()[0].id
+
+    response = app.test_client().get(f"/api/tracks/{track_id}/file")
+
+    assert response.status_code == 404
+    assert response.get_json() == {"error": "Track not found", "status_code": 404}
+
+
 def test_update_track_endpoint_updates_track_and_returns_204(app):
     with app.app_context():
         services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=5))

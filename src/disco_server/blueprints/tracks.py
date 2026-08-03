@@ -1,7 +1,7 @@
 import os.path
 import uuid
 
-from flask import Blueprint, current_app, jsonify, request, url_for
+from flask import Blueprint, current_app, jsonify, request, send_from_directory, url_for
 from pydantic import ValidationError
 
 from disco_server.core.services import file_manager
@@ -60,6 +60,39 @@ def get_track(track_id):
         return not_found()
 
     return jsonify(mapper.map_to_track_details(track))
+
+@bp.route('/tracks/<int:track_id>/file', methods=['GET'])
+def get_track_file(track_id):
+    """Serve the audio file for a track, for preview/playback.
+    ---
+    tags:
+      - tracks
+    parameters:
+      - name: track_id
+        in: path
+        type: integer
+        required: true
+    responses:
+      200:
+        description: The track's audio file
+        schema:
+          type: file
+      404:
+        description: Track not found, or its file is missing
+        schema:
+          $ref: '#/definitions/Error'
+    """
+    library = get_track_library()
+    track = library.get_track(track_id)
+    if track is None:
+        return not_found()
+
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    filename = os.path.basename(track.path)
+    if not os.path.isfile(os.path.join(upload_folder, filename)):
+        return not_found()
+
+    return send_from_directory(upload_folder, filename)
 
 @bp.route('/tracks/<int:track_id>', methods=['PUT'])
 def update_track(track_id):
