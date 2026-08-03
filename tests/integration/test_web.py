@@ -67,3 +67,30 @@ def test_format_cue_point_handles_under_a_minute():
 
 def test_format_cue_point_handles_none():
     assert format_cue_point(None) == "—"
+
+
+def test_upload_page_renders(app):
+    response = app.test_client().get("/upload")
+
+    assert response.status_code == 200
+
+
+def test_upload_page_renders_the_drop_zone_and_form_fields(app):
+    response = app.test_client().get("/upload")
+    body = response.get_data(as_text=True)
+
+    assert 'id="drop-zone"' in body
+    assert 'accept=".mp3,.wav,.flac,audio/*"' in body
+    assert 'id="name-input"' in body
+    assert 'id="cue-point-input"' in body
+    assert 'id="mark-cue-btn"' in body
+    assert 'id="submit-btn"' in body
+    assert 'data-upload-url="/api/tracks/upload"' in body
+
+
+def test_upload_js_is_served_as_a_static_file(app):
+    response = app.test_client().get("/static/js/upload.js")
+
+    assert response.status_code == 200
+    assert b"FormData" in response.data
+    assert b"handleFileSelected" in response.data

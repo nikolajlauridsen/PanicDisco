@@ -16,3 +16,7 @@ def format_cue_point(seconds):
 def index():
     library = get_track_library()
     return render_template('tracks.html', tracks=library.get_tracks())
+
+@bp.route('/upload')
+def upload():
+    return render_template('upload.html')
