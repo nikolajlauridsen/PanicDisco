@@ -37,4 +37,28 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   audio.addEventListener('ended', stopPlayback);
+
+  document.querySelectorAll('.track-delete').forEach((button) => {
+    button.addEventListener('click', async () => {
+      if (!confirm(`Delete "${button.dataset.name}"? This cannot be undone.`)) {
+        return;
+      }
+
+      const row = button.closest('tr');
+      if (activeButton && row.contains(activeButton)) {
+        stopPlayback();
+      }
+
+      try {
+        const response = await fetch(button.dataset.deleteUrl, { method: 'DELETE' });
+        if (response.status === 204) {
+          row.remove();
+          return;
+        }
+        alert(`Could not delete track (${response.status}).`);
+      } catch (err) {
+        alert('Could not reach the server. Please check your connection and try again.');
+      }
+    });
+  });
 });

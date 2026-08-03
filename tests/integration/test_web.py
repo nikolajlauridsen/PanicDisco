@@ -41,6 +41,20 @@ def test_index_page_renders_a_preview_button_pointing_at_the_track_file(app):
     assert "Play" in body
 
 
+def test_index_page_renders_a_delete_button_pointing_at_the_track(app):
+    with app.app_context():
+        services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=5))
+        track_id = services.get_track_library().get_tracks()[0].id
+
+    response = app.test_client().get("/")
+    body = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert f'data-delete-url="/api/tracks/{track_id}"' in body
+    assert 'data-name="song1"' in body
+    assert "track-delete" in body
+
+
 def test_index_page_renders_zero_cue_point_when_track_has_none(app):
     with app.app_context():
         services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=None))
@@ -57,6 +71,7 @@ def test_tracks_js_is_served_as_a_static_file(app):
 
     assert response.status_code == 200
     assert b"preview-toggle" in response.data
+    assert b"track-delete" in response.data
 
 
 def test_index_page_renders_cue_point_as_minutes_seconds(app):

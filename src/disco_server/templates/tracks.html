@@ -22,6 +22,7 @@
           <th class="px-4 py-2 font-medium text-gray-500">Name</th>
           <th class="px-4 py-2 font-medium text-gray-500">Cue point</th>
           <th class="px-4 py-2 font-medium text-gray-500">Preview</th>
+          <th class="px-4 py-2 font-medium text-gray-500">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200">
@@ -36,6 +37,14 @@
                     data-cue-point="{{ track.cue_time or 0 }}"
                     aria-pressed="false">
               Play
+            </button>
+          </td>
+          <td class="px-4 py-2">
+            <button type="button"
+                    class="track-delete rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
+                    data-delete-url="{{ url_for('tracks.delete_track', track_id=track.id) }}"
+                    data-name="{{ track.name }}">
+              Delete
             </button>
           </td>
         </tr>
