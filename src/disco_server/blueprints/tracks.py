@@ -154,18 +154,14 @@ def upload_track():
           $ref: '#/definitions/Error'
     """
     format = request.files['file'].filename.split('.')[-1]
-    if format != 'mp3':
+    if format not in ['mp3', 'flac', 'wav']:
         return jsonify(Error('File format not supported', 400)), 400
 
     track_upload = TrackUpload.model_validate(request.form.to_dict())
     path = os.path.join(current_app.config['UPLOAD_FOLDER'], f"{uuid.uuid4().hex}.{format}")
 
-    track = Track(
-        name=track_upload.name,
-        path=path,
-        cue_time=track_upload.cue_point)
-
     library = get_track_library()
+    track = mapper.map_upload_to_track(track_upload, path)
     library.create_track(track)
     request.files['file'].save(path)
 

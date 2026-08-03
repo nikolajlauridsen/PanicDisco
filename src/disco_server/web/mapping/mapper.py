@@ -1,5 +1,6 @@
 from disco_server.core.models.track import Track
 from disco_server.web.view_models.request_models.track_update import TrackUpdate
+from disco_server.web.view_models.request_models.track_upload import TrackUpload
 from disco_server.web.view_models.response_models.track_details import TrackDetails
 from disco_server.web.view_models.response_models.track_entity import TrackEntity
 
@@ -16,3 +17,9 @@ def map_to_track(track_update: TrackUpdate) -> Track:
         path=track_update.path,
         cue_time=track_update.cue_point,
     )
+
+def map_upload_to_track(track_upload: TrackUpload, path : str) -> Track:
+    return Track(
+        name=track_upload.name,
+        path=path,
+        cue_time=track_upload.cue_point)
