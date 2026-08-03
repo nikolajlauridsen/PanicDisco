@@ -22,7 +22,7 @@
         {% for track in tracks %}
         <tr>
           <td class="px-4 py-2">{{ track.name }}</td>
-          <td class="px-4 py-2">{{ track.cue_time if track.cue_time is not none else '—' }}</td>
+          <td class="px-4 py-2">{{ track.cue_time | cue_point }}</td>
           <td class="px-4 py-2">
             <button type="button"
                     class="preview-toggle rounded bg-indigo-600 px-3 py-1 text-sm text-white hover:bg-indigo-700"

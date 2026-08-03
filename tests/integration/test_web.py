@@ -1,6 +1,7 @@
 import pytest
 
 from disco_server import create_app, services
+from disco_server.blueprints.web import format_cue_point
 from disco_server.core.models.track import Track
 
 
@@ -44,3 +45,25 @@ def test_tracks_js_is_served_as_a_static_file(app):
 
     assert response.status_code == 200
     assert b"preview-toggle" in response.data
+
+
+def test_index_page_renders_cue_point_as_minutes_seconds(app):
+    with app.app_context():
+        services.get_track_library().create_track(Track(name="song1", path="/music/song1.mp3", cue_time=65))
+
+    response = app.test_client().get("/")
+
+    assert response.status_code == 200
+    assert "1:05" in response.get_data(as_text=True)
+
+
+def test_format_cue_point_pads_seconds_under_ten():
+    assert format_cue_point(65) == "1:05"
+
+
+def test_format_cue_point_handles_under_a_minute():
+    assert format_cue_point(5) == "0:05"
+
+
+def test_format_cue_point_handles_none():
+    assert format_cue_point(None) == "—"
