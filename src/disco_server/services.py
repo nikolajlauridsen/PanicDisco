@@ -14,5 +14,5 @@ def get_track_library() -> TrackLibrary:
 def get_boombox() -> Boombox:
     """Return the app's shared Boombox, creating it on first access."""
     if 'boombox' not in current_app.extensions:
-        current_app.extensions['boombox'] = Boombox()
+        current_app.extensions['boombox'] = Boombox(current_app.config['VLC_ARGS'])
     return current_app.extensions['boombox']

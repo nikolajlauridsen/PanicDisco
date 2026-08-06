@@ -23,7 +23,8 @@ def test_get_track_library_returns_the_same_instance_within_an_app(app):
 
 def test_get_boombox_returns_the_same_instance_within_an_app(app, monkeypatch):
     class FakeBoombox:
-        pass
+        def __init__(self, vlc_args=''):
+            pass
 
     monkeypatch.setattr(services, "Boombox", FakeBoombox)
 

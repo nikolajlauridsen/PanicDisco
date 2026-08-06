@@ -13,9 +13,9 @@ class Boombox:
     before any playback method is called.
     """
 
-    def __init__(self):
+    def __init__(self, vlc_args: str = ''):
         self.loaded_track : Track | None = None
-        self._vlc_instance = vlc.Instance()
+        self._vlc_instance = vlc.Instance(vlc_args.split())
         self.player : MediaPlayer = self._vlc_instance.media_player_new()
 
     def _ensure_loaded(self) -> None:

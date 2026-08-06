@@ -21,6 +21,7 @@ def create_app(test_config: dict | None = None):
     app.config.from_mapping(
         DATABASE_PATH=os.path.join(app.instance_path, 'disco_server.sqlite3'),
         UPLOAD_FOLDER=os.path.join(app.instance_path, 'uploads'),
+        VLC_ARGS='',
     )
     if test_config is None:
         app.config.from_pyfile('config.py', silent=True)

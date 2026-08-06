@@ -7,7 +7,7 @@ from disco_server.core.models.track import Track
 class FakeBoombox:
     """A fake Boombox that records calls instead of touching real VLC."""
 
-    def __init__(self):
+    def __init__(self, vlc_args=''):
         self.loaded_track = None
         self.calls = []
 
