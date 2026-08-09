@@ -7,9 +7,19 @@ from flask import Flask
 from disco_server.blueprints.tracks import bp as tracks_bp
 from disco_server.blueprints.web import bp as web_bp
 from disco_server.blueprints.boombox import bp as boombox_bp
+from disco_server.core.actions.music_action import MusicAction
 from disco_server.core.database.database import Database
+from disco_server.services import add_panic_action
 from disco_server.web.json_provider import PydanticJSONProvider
 from disco_server.web.swagger_template import build_swagger_template
+
+def add_panic_actions() -> None:
+    """Register the built-in panic actions.
+
+    Extend this to register additional `PanicAction` implementations (e.g.
+    a GPIO-driven lights action) alongside `MusicAction`.
+    """
+    add_panic_action(MusicAction())
 
 def create_app(test_config: dict | None = None):
     app = Flask(__name__, instance_relative_config=True)
@@ -40,6 +50,8 @@ def create_app(test_config: dict | None = None):
     app.register_blueprint(tracks_bp)
     app.register_blueprint(web_bp)
     app.register_blueprint(boombox_bp)
+
+    add_panic_actions()
 
     Swagger(app, template=build_swagger_template())
 
