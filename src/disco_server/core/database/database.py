@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from disco_server.core.database.dtos.base import Base
 from disco_server.core.database.dtos.track_dto import TrackDTO
+from disco_server.core.database.dtos.key_value_dto import KeyValueDto
 from disco_server.core.database.mapping.mapper import map_to_dto, map_to_track
 from disco_server.core.models.track import Track
 
@@ -67,3 +68,27 @@ class Database:
         """Return the track with the given id, or None if not found."""
         dto = self._get_dto(track_id)
         return map_to_track(dto) if dto is not None else None
+
+    def set_value(self, key: str, value: str) -> None:
+        """Set the value stored under `key`, creating the row if needed.
+
+        Upserts rather than always inserting: `key` is unique, so writing a
+        second value for an already-stored key updates the existing row in
+        place instead of hitting a uniqueness violation.
+        """
+        dto = KeyValueDto.query.filter(KeyValueDto.key == key).first()
+
+        if dto is None:
+            dto = KeyValueDto(key=key, value=value)
+            self.db_sessions.add(dto)
+            self.db_sessions.commit()
+            return
+
+        dto.value = value
+        self.db_sessions.commit()
+
+    def get_value(self, key: str) -> str | None:
+        """Return the value stored under `key`, or None if it's never been set."""
+        dto = KeyValueDto.query.filter(KeyValueDto.key == key).first()
+
+        return None if dto is None else dto.value
