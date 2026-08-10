@@ -1,15 +1,9 @@
-﻿from flask import Blueprint, jsonify
+﻿from flask import Blueprint
 
 from disco_server.services import get_track_library, get_boombox, get_last_played
-from disco_server.web.view_models.response_models.error import Error
+from disco_server.web.errors import not_found, not_loaded
+
 bp = Blueprint('boombox', __name__, url_prefix='/api/boombox')
-
-# TODO: Move somewhere shared.
-def not_found():
-    return jsonify(Error("Track not found", 404)), 404
-
-def not_loaded():
-    return jsonify(Error("Track not loaded", 503)), 503
 
 @bp.route('/load/<int:track_id>', methods=['PUT'])
 def load_track(track_id):

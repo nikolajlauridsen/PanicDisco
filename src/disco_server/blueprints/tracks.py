@@ -6,15 +6,13 @@ from pydantic import ValidationError
 
 from disco_server.core.services import file_manager
 from disco_server.services import get_track_library
+from disco_server.web.errors import not_found
 from disco_server.web.mapping import mapper
 from disco_server.web.view_models.request_models.track_update import TrackUpdate
 from disco_server.web.view_models.request_models.track_upload import TrackUpload
 from disco_server.web.view_models.response_models.error import Error
 
 bp = Blueprint('tracks', __name__, url_prefix='/api')
-
-def not_found():
-    return jsonify(Error("Track not found", 404)), 404
 
 @bp.route('/tracks')
 def list_tracks():
