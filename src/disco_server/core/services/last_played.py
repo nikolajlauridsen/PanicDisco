@@ -1,7 +1,7 @@
 from disco_server.core.database.database import Database
 from disco_server.core.models.track import Track
 
-_static_key = "last_played"
+_KEY = "last_played"
 
 class LastPlayed:
     """Persists which track was last loaded, so it can be reloaded on startup.
@@ -22,10 +22,10 @@ class LastPlayed:
         if track.id is None:
             raise RuntimeError('Track id is required')
 
-        self.database.set_value(_static_key, str(track.id))
+        self.database.set_value(_KEY, str(track.id))
 
     def get(self) -> Track | None:
-        track_id = self.database.get_value(_static_key)
+        track_id = self.database.get_value(_KEY)
         if track_id is None:
             return None
 
