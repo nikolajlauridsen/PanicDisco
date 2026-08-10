@@ -44,7 +44,8 @@ def create_app(test_config: dict | None = None):
 
     register_blueprints(app)
 
-    add_panic_actions()
+    with app.app_context():
+        add_panic_actions()
 
     Swagger(app, template=build_swagger_template())
 
