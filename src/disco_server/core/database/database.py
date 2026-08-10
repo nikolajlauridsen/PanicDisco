@@ -1,5 +1,5 @@
 import os
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect
 from sqlalchemy.orm import scoped_session, sessionmaker
 from disco_server.core.database.dtos.base import Base
 from disco_server.core.database.dtos.track_dto import TrackDTO
@@ -18,6 +18,17 @@ class Database:
     def init_db(self):
         print('Initializing database...')
         Base.metadata.create_all(bind=self._engine)
+
+    def is_initialized(self) -> bool:
+        """Return whether `init_db()` has already created every current table.
+
+        False for a brand new database file, and for one initialized before a
+        table (e.g. `key_value`) was added to the schema — callers that query
+        the database at app-startup time, before `flask init-db` necessarily
+        ran, should check this first rather than let the query 500.
+        """
+        inspector = inspect(self._engine)
+        return all(inspector.has_table(table.name) for table in Base.metadata.sorted_tables)
 
     def _get_dto(self, track_id: int) -> TrackDTO | None:
         return TrackDTO.query.filter(TrackDTO.id == track_id).first()

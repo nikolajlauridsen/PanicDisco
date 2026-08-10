@@ -1,6 +1,6 @@
 ﻿from flask import Blueprint, jsonify
 
-from disco_server.services import get_track_library, get_boombox
+from disco_server.services import get_track_library, get_boombox, get_last_played
 from disco_server.web.view_models.response_models.error import Error
 bp = Blueprint('boombox', __name__, url_prefix='/api/boombox')
 
@@ -36,7 +36,9 @@ def load_track(track_id):
         return not_found()
 
     boombox = get_boombox()
+    last_played = get_last_played()
     boombox.load_track(track)
+    last_played.set(track)
     return '', 200
 
 @bp.route('/play', methods=['PUT'])

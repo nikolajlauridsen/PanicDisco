@@ -2,6 +2,7 @@ from flask import current_app
 
 from disco_server.core.extension.panic_action import PanicAction
 from disco_server.core.services.boombox import Boombox
+from disco_server.core.services.last_played import LastPlayed
 from disco_server.core.services.panic import Panic
 from disco_server.core.services.track_library import TrackLibrary
 
@@ -32,3 +33,10 @@ def get_panic() -> Panic:
         current_app.extensions['panic_action'] = []
 
     return Panic(current_app.extensions['panic_action'])
+
+def get_last_played() -> LastPlayed:
+    """Return a KeyValueService wrapping the app's currently registered key values."""
+    if 'last_played' not in current_app.extensions:
+        current_app.extensions['last_played'] = LastPlayed(current_app.database)
+
+    return current_app.extensions['last_played']
