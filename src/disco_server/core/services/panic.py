@@ -1,4 +1,8 @@
+import logging
+
 from disco_server.core.extension.panic_action import PanicAction
+
+logger = logging.getLogger(__name__)
 
 
 class Panic:
@@ -16,16 +20,17 @@ class Panic:
         for action in self.actions:
             try:
                 action.start()
-            except Exception:
-                # Swallow silently, we always want all extensions to run.
-                # TODO: Add logging and log error.
-                pass
+            except Exception as e:
+                logger.exception("PanicAction %r failed to start: %s", action, e)
 
     def stop(self) -> None:
-        """Execute every registered stop action."""
+        """Execute every registered stop action.
 
+        Same swallow-and-log behavior as panic(), for the same reason: one
+        misbehaving action's stop() can't be allowed to stop the others'.
+        """
         for action in self.actions:
             try:
                 action.stop()
-            except Exception:
-                pass
+            except Exception as e:
+                logger.exception("PanicAction %r failed to stop: %s", action, e)

@@ -5,6 +5,8 @@ Pure unit tests against fake PanicAction implementations, independent of
 Flask/the database — same spirit as test_mapper.py.
 """
 
+import logging
+
 from disco_server.core.extension.panic_action import PanicAction
 from disco_server.core.services.panic import Panic
 
@@ -55,6 +57,15 @@ def test_panic_swallows_an_action_exception_and_still_runs_the_rest():
     assert good_after.started is True
 
 
+def test_panic_logs_when_an_action_fails_to_start(caplog):
+    with caplog.at_level(logging.ERROR):
+        Panic([FailingAction()]).panic()
+
+    assert len(caplog.records) == 1
+    assert caplog.records[0].levelno == logging.ERROR
+    assert "boom" in caplog.records[0].getMessage()
+
+
 def test_panic_does_not_call_stop_on_actions():
     action = RecordingAction()
     Panic([action]).panic()
@@ -82,6 +93,15 @@ def test_stop_swallows_an_action_exception_and_still_runs_the_rest():
 
     assert good_before.stopped is True
     assert good_after.stopped is True
+
+
+def test_stop_logs_when_an_action_fails_to_stop(caplog):
+    with caplog.at_level(logging.ERROR):
+        Panic([FailingAction()]).stop()
+
+    assert len(caplog.records) == 1
+    assert caplog.records[0].levelno == logging.ERROR
+    assert "boom" in caplog.records[0].getMessage()
 
 
 def test_stop_does_not_call_start_on_actions():
