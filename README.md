@@ -22,6 +22,9 @@ Boring stuff includes:
 - **A JSON API** (`/api/tracks*`) — everything the UI does, scriptable. Explore it at
   `/apidocs/` once the app is running.
 - **Boombox** — plays a chosen track through VLC, seeking to its cue point.
+- **Panic button** (`/api/panic/*`) — an extensible hook point: registered `PanicAction`s
+  (e.g. starting Boombox playback) all run when panic is triggered, and all run their
+  stop behavior when it's cleared.
 
 ## Getting started
 

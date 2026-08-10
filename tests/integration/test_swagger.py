@@ -20,6 +20,8 @@ def test_apispec_json_documents_the_tracks_routes(tmp_path):
     assert "put" in spec["paths"]["/api/boombox/stop"]
     assert "put" in spec["paths"]["/api/boombox/pause"]
     assert "put" in spec["paths"]["/api/boombox/resume"]
+    assert "post" in spec["paths"]["/api/panic/start"]
+    assert "post" in spec["paths"]["/api/panic/stop"]
 
 
 def test_apidocs_ui_is_served(tmp_path):

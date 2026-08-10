@@ -1,4 +1,4 @@
-﻿from disco_server.core.extension.panic_action import PanicAction
+from disco_server.core.extension.panic_action import PanicAction
 from disco_server.services import get_boombox
 
 

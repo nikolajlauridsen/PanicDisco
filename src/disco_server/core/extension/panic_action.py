@@ -1,10 +1,10 @@
-﻿from abc import ABC, abstractmethod
+from abc import ABC, abstractmethod
 
 
 class PanicAction(ABC):
     """Extension point for the panic button.
 
-    Implement `execute` to hook custom behavior (starting playback, driving
+    Implement `start`/`stop` to hook custom behavior (starting playback, driving
     GPIO for lights, etc.) into the panic button, then register an instance
     via `disco_server.services.add_panic_action`. `Panic` runs every
     registered action when the button is triggered.
