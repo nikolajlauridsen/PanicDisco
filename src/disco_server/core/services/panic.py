@@ -15,8 +15,17 @@ class Panic:
         """
         for action in self.actions:
             try:
-                action.execute()
+                action.start()
             except Exception:
                 # Swallow silently, we always want all extensions to run.
                 # TODO: Add logging and log error.
+                pass
+
+    def stop(self) -> None:
+        """Execute every registered stop action."""
+
+        for action in self.actions:
+            try:
+                action.stop()
+            except Exception:
                 pass

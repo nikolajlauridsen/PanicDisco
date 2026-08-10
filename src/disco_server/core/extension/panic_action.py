@@ -11,6 +11,11 @@ class PanicAction(ABC):
     """
 
     @abstractmethod
-    def execute(self) -> None:
+    def start(self) -> None:
         """Perform this action's panic behavior."""
+        pass
+
+    @abstractmethod
+    def stop(self) -> None:
+        """Revert this action's panic behavior."""
         pass

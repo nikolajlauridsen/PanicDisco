@@ -5,6 +5,10 @@ from disco_server.services import get_boombox
 class MusicAction(PanicAction):
     """Panic action that starts playback of whatever track is loaded."""
 
-    def execute(self) -> None:
+    def start(self) -> None:
         boombox = get_boombox()
         boombox.play()
+
+    def stop(self) -> None:
+        boombox = get_boombox()
+        boombox.stop()
