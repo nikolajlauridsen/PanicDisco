@@ -27,6 +27,11 @@ class TrackClient(ClientBase):
         self._raise_for_status(response)
         return TrackDetails.model_validate(response.json())
 
+    def get_track_file(self, track_id: int) -> bytes:
+        response = self.session.get(f"{self.base_url}/{track_id}/file", timeout=self.timeout)
+        self._raise_for_status(response)
+        return response.content
+
     def update_track(self, track_id: int, track: TrackUpdate) -> None:
         response = self.session.put(f"{self.base_url}/{track_id}", json=track.model_dump(), timeout=self.timeout)
         self._raise_for_status(response)

@@ -40,6 +40,23 @@ def test_get_track_raises_track_not_found_on_404(client, requests_mock):
         client.tracks.get_track(1)
 
 
+def test_get_track_file_returns_the_raw_bytes(client, requests_mock):
+    requests_mock.get(f"{client.base_url}/api/tracks/1/file", content=b"fake audio bytes")
+
+    assert client.tracks.get_track_file(1) == b"fake audio bytes"
+
+
+def test_get_track_file_raises_track_not_found_on_404(client, requests_mock):
+    requests_mock.get(
+        f"{client.base_url}/api/tracks/1/file",
+        status_code=404,
+        json={"error": "Track not found", "status_code": 404},
+    )
+
+    with pytest.raises(TrackNotFoundError):
+        client.tracks.get_track_file(1)
+
+
 def test_update_track_sends_the_update_body(client, requests_mock):
     mock = requests_mock.put(f"{client.base_url}/api/tracks/1", status_code=204)
 
