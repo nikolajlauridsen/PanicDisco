@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest"]
+deploy = ["waitress"]
 
 [tool.uv.sources]
 disco_shared = { path = "../disco_shared", editable = true }
