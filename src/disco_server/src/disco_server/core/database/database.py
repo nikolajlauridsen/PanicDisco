@@ -5,7 +5,7 @@ from disco_server.core.database.dtos.base import Base
 from disco_server.core.database.dtos.track_dto import TrackDTO
 from disco_server.core.database.dtos.key_value_dto import KeyValueDto
 from disco_server.core.database.mapping.mapper import map_to_dto, map_to_track
-from disco_server.core.models.track import Track
+from disco_core.models.track import Track
 
 
 class Database:

@@ -1,5 +1,5 @@
 from disco_server.core.database.dtos.track_dto import TrackDTO
-from disco_server.core.models.track import Track
+from disco_core.models.track import Track
 
 
 def map_to_track(dto: TrackDTO) -> Track:

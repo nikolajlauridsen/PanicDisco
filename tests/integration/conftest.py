@@ -1,7 +1,7 @@
 import pytest
 
 from disco_server.core.database.database import Database
-from disco_server.core.models.track import Track
+from disco_core.models.track import Track
 from disco_server.core.services.track_library import TrackLibrary
 
 

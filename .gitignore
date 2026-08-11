@@ -67,7 +67,7 @@ instance/
 
 # Node / Tailwind CSS build output
 node_modules/
-src/disco_server/static/css/tailwind.css
+src/disco_server/src/disco_server/static/css/tailwind.css
 
 # Scrapy stuff:
 .scrapy

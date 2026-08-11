@@ -1,4 +1,4 @@
-from disco_server.core.models.track import Track
+from disco_core.models.track import Track
 from disco_server.web.view_models.request_models.track_update import TrackUpdate
 from disco_server.web.view_models.request_models.track_upload import TrackUpload
 from disco_server.web.view_models.response_models.track_details import TrackDetails
