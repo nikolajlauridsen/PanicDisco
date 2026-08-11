@@ -100,16 +100,18 @@ uv run python -m pytest ../../tests/integration -v
 The UI templates (`src/disco_server/disco_server/templates/`) are styled with
 Tailwind CSS. Its source lives in
 `src/disco_server/disco_server/assets/css/input.css`; the compiled stylesheet Flask
-actually serves (`src/disco_server/disco_server/static/css/tailwind.css`) is a
-generated build artifact and isn't checked into git, so it needs to be built at least
-once before the UI looks like anything more than unstyled HTML.
+actually serves (`src/disco_server/disco_server/static/css/tailwind.css`) **is
+checked into git**, deliberately — that means the Raspberry Pi deploy never needs
+Node.js/npm installed at all, just `git pull`. The tradeoff is that it's on you to
+rebuild and commit it after changing a template or the source CSS; nothing enforces
+that automatically.
 
 1. Install the Tailwind CLI (Node.js required — this is separate from the Python
-   venvs above):
+   venvs above, and only ever needed on your dev machine, never on the Pi):
    ```
    npm install
    ```
-2. Build the stylesheet once:
+2. Build the stylesheet:
    ```
    npm run build:css
    ```
@@ -121,6 +123,9 @@ once before the UI looks like anything more than unstyled HTML.
 3. Run the Flask app as usual (see [Getting started](#getting-started) above) —
    `templates/*.html` link the compiled file via
    `{{ url_for('static', filename='css/tailwind.css') }}`.
+4. **Commit the rebuilt `tailwind.css`** along with whatever template/style change
+   prompted it — it won't get picked up on the Pi otherwise, since `git pull` is the
+   entire deploy mechanism for it.
 
 One thing to remember: re-run `npm run build:css` (or keep `watch:css` running) any
 time you add Tailwind utility classes to a template — the build only picks up
@@ -169,15 +174,17 @@ tools installed — using 64-bit OS is strongly recommended.
 ./scripts/install-disco-server.sh
 ```
 Installs the remaining system dependencies (`vlc`, for the `libvlc` `python-vlc`
-needs at runtime), installs `uv` if it isn't already, installs a current Node.js LTS
-via NodeSource if it isn't already (Raspberry Pi OS's own `apt` repo ships a Node too
-old for Tailwind CSS v4), syncs `disco_shared` and `disco_server`, initializes the
-database, builds the Tailwind stylesheet (`npm install && npm run build:css` — it's a
-gitignored build artifact, so a fresh clone never has it), and installs+starts a
-systemd service (`disco-server`) so it survives reboots and restarts on crash. Safe
-to re-run — every step is idempotent. If the Pi's system Python is older than 3.12
-(common on Raspberry Pi OS), don't worry about it — `uv sync` transparently downloads
-and uses a matching Python 3.12 build on its own.
+needs at runtime), installs `uv` if it isn't already, syncs `disco_shared` and
+`disco_server`, initializes the database, and installs+starts a systemd service
+(`disco-server`) so it survives reboots and restarts on crash. Safe to re-run —
+every step is idempotent. If the Pi's system Python is older than 3.12 (common on
+Raspberry Pi OS), don't worry about it — `uv sync` transparently downloads and uses
+a matching Python 3.12 build on its own.
+
+Notably, this doesn't touch Node.js/npm at all — the Tailwind stylesheet is a
+committed build artifact (see [Frontend](#frontend-tailwind-css) above), so it just
+comes along with the code via `git clone`/`git pull`. The Pi never needs a Node
+toolchain installed.
 
 Check it's up with `systemctl status disco-server` and `curl localhost:5000/api/tracks`.
 
@@ -208,11 +215,12 @@ get the same single-process guarantee.
 ```
 Pulls the latest commit (fast-forward only — it refuses if there are local
 uncommitted changes, so it won't silently clobber anything), re-syncs
-`disco_shared` and `disco_server`, rebuilds the Tailwind stylesheet, restarts the
-`disco-server` systemd service, and polls `/api/tracks` for up to 10s to confirm it
-actually came back up. Needs the one-time setup from steps 1–2 above already done
-(uv/Node installed, the service unit in place, passwordless — or interactive —
-`sudo` for `systemctl restart`).
+`disco_shared` and `disco_server`, restarts the `disco-server` systemd service, and
+polls `/api/tracks` for up to 10s to confirm it actually came back up. The `git
+pull` alone brings any updated Tailwind stylesheet too, since it's committed rather
+than built on the Pi. Needs the one-time setup from steps 1–2 above already done
+(uv installed, the service unit in place, passwordless — or interactive — `sudo`
+for `systemctl restart`).
 
 If you'd rather run the steps by hand:
 ```bash
@@ -220,7 +228,6 @@ cd PanicDisco
 git pull
 cd src/disco_shared && uv sync   # if disco_shared changed
 cd ../disco_server && uv sync --extra deploy
-cd ../.. && npm install && npm run build:css
 sudo systemctl restart disco-server
 ```
 Never delete or overwrite `src/disco_server/instance/` when redeploying — that's

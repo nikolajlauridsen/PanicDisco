@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # Redeploys disco_server on the Raspberry Pi: pulls the latest code, re-syncs
-# disco_shared and disco_server, rebuilds the Tailwind stylesheet, restarts
-# the systemd service, and checks it actually came back up. See README.md's
-# "Deploying disco_server to a Raspberry Pi" section for the one-time setup
-# this assumes is already done (uv/Node installed, venvs created, the
-# disco-server.service unit in place — see scripts/install-disco-server.sh).
+# disco_shared and disco_server, restarts the systemd service, and checks it
+# actually came back up. The Tailwind stylesheet is a committed build
+# artifact (see README.md's "Frontend (Tailwind CSS)" section), so `git pull`
+# alone brings the current styling — no Node/npm needed on the Pi at all. See
+# README.md's "Deploying disco_server to a Raspberry Pi" section for the
+# one-time setup this assumes is already done (uv installed, venvs created,
+# the disco-server.service unit in place — see scripts/install-disco-server.sh).
 set -euo pipefail
 
 SERVICE_NAME="disco-server"
@@ -27,10 +29,6 @@ echo "==> Syncing disco_shared"
 
 echo "==> Syncing disco_server"
 (cd src/disco_server && uv sync --extra deploy)
-
-echo "==> Rebuilding the Tailwind stylesheet"
-npm install
-npm run build:css
 
 echo "==> Restarting $SERVICE_NAME"
 sudo systemctl restart "$SERVICE_NAME"

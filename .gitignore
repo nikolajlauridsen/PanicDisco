@@ -65,9 +65,10 @@ db.sqlite3-journal
 instance/
 .webassets-cache
 
-# Node / Tailwind CSS build output
+# Node / Tailwind CSS build output — tailwind.css itself IS committed (see
+# README's "Frontend (Tailwind CSS)" section), so the Pi deploy never needs
+# Node/npm at all; only node_modules stays ignored.
 node_modules/
-src/disco_server/disco_server/static/css/tailwind.css
 
 # Scrapy stuff:
 .scrapy

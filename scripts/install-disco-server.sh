@@ -21,24 +21,13 @@ SERVER_DIR="$REPO_ROOT/src/disco_server"
 
 echo "==> Installing system dependencies (vlc, git)"
 sudo apt-get update
-sudo apt-get install -y vlc git curl ca-certificates
+sudo apt-get install -y vlc git
 
 if ! command -v uv > /dev/null 2>&1; then
     echo "==> Installing uv"
     curl -LsSf https://astral.sh/uv/install.sh | sh
 else
     echo "==> uv already installed, skipping"
-fi
-
-# Tailwind CSS v4 (see package.json) needs Node.js 20+. Raspberry Pi OS's own
-# apt repo ships an older Node than that, so pull a current LTS from
-# NodeSource instead of relying on `apt install nodejs`.
-if ! command -v node > /dev/null 2>&1 || [ "$(node -v | sed 's/^v//' | cut -d. -f1)" -lt 20 ]; then
-    echo "==> Installing Node.js LTS (needed to build the Tailwind stylesheet)"
-    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-    sudo apt-get install -y nodejs
-else
-    echo "==> Node.js already installed ($(node -v)), skipping"
 fi
 
 echo "==> Syncing disco_shared"
@@ -49,9 +38,6 @@ echo "==> Syncing disco_server"
 
 echo "==> Initializing the database (safe to re-run)"
 (cd "$SERVER_DIR" && uv run flask --app disco_server init-db)
-
-echo "==> Building the Tailwind stylesheet"
-(cd "$REPO_ROOT" && npm install && npm run build:css)
 
 echo "==> Installing systemd service"
 sudo tee "/etc/systemd/system/${SERVICE_NAME}.service" > /dev/null <<EOF
