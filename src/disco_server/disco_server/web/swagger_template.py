@@ -28,7 +28,7 @@ def build_swagger_template() -> dict:
                 'type': 'object',
                 'properties': {
                     'name': {'type': 'string'},
-                    'cue_point': {'type': 'integer'},
+                    'cue_point': {'type': 'integer', 'x-nullable': True},
                     'path': {'type': 'string'},
                 },
                 'required': ['name', 'cue_point', 'path'],

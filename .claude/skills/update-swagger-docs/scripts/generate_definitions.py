@@ -1,18 +1,21 @@
-"""Generate Swagger 2.0 `definitions` fragments from disco_server view models.
+"""Generate Swagger 2.0 `definitions` fragments from disco_shared's view models.
 
 Usage:
     python generate_definitions.py <dotted.path.to.Model>[:mode] [...]
 
 Each argument is a dotted import path to a pydantic BaseModel or a plain
-dataclass used as a request/response shape somewhere in disco_server, e.g.
+dataclass used as a request/response shape somewhere in disco_server. These
+live in the disco_shared package (not disco_server itself), so this needs to
+run via disco_server's venv, which has disco_shared installed as a
+dependency, e.g.
 
-    disco_server.web.view_models.response_models.track_details.TrackDetails:serialization
-    disco_server.web.view_models.request_models.track_update.TrackUpdate
-    disco_server.web.view_models.response_models.error.Error
+    disco_shared.models.track_details.TrackDetails:serialization
+    disco_shared.models.track_update.TrackUpdate
+    disco_shared.models.error.Error
 
 Prints a JSON object mapping model name -> Swagger 2.0 schema to stdout.
 Merge the relevant entries into the `definitions` dict returned by
-build_swagger_template() in src/disco_server/web/swagger_template.py.
+build_swagger_template() in src/disco_server/disco_server/web/swagger_template.py.
 
 Pydantic models take an optional `:validation` or `:serialization` suffix:
 - `:serialization` (use for RESPONSE models) matches the keys that actually

@@ -1,13 +1,13 @@
 ---
 name: update-swagger-docs
-description: Keeps disco_server's flasgger-generated Swagger/OpenAPI docs in sync with the actual code — the `definitions` dict in src/disco_server/web/swagger_template.py and the YAML docstrings in src/disco_server/blueprints/*.py. Use this any time a Flask route is added, removed, or has its request/response shape changed in a blueprint file, any time a pydantic view model or dataclass used as a request/response shape (e.g. TrackDetails, TrackUpdate, Error) gains, loses, renames, or retypes a field, or whenever the user asks to "update the swagger docs", "sync the API spec", "regenerate the OpenAPI definitions", or anything about keeping "the endpoint docs" or "the API docs" current — even if they don't say flasgger or Swagger by name. Also worth running as a check after any change that touches blueprints/ or web/view_models/, since stale docs are easy to miss and won't cause test failures on their own.
+description: Keeps disco_server's flasgger-generated Swagger/OpenAPI docs in sync with the actual code — the `definitions` dict in src/disco_server/disco_server/web/swagger_template.py and the YAML docstrings in src/disco_server/disco_server/blueprints/*.py. Use this any time a Flask route is added, removed, or has its request/response shape changed in a blueprint file, any time a pydantic view model or dataclass used as a request/response shape (e.g. TrackDetails, TrackUpdate, Error) gains, loses, renames, or retypes a field, or whenever the user asks to "update the swagger docs", "sync the API spec", "regenerate the OpenAPI definitions", or anything about keeping "the endpoint docs" or "the API docs" current — even if they don't say flasgger or Swagger by name. Also worth running as a check after any change that touches disco_server's blueprints/ or disco_shared's models/, since stale docs are easy to miss and won't cause test failures on their own.
 ---
 
 # Updating disco_server's Swagger docs
 
 disco_server documents its `/api/tracks*` routes with flasgger: a hand-maintained
-`definitions` dict in `src/disco_server/web/swagger_template.py`, and a YAML block in
-each route's docstring in `src/disco_server/blueprints/*.py` that `$ref`s those
+`definitions` dict in `src/disco_server/disco_server/web/swagger_template.py`, and a YAML block in
+each route's docstring in `src/disco_server/disco_server/blueprints/*.py` that `$ref`s those
 definitions. Nothing regenerates these automatically — they drift the moment a route
 or model changes underneath them, and a stale doc doesn't fail any test on its own
 (the app runs fine, `/apispec_1.json` still returns 200, it's just wrong). This skill
@@ -17,10 +17,11 @@ is the deliberate step that keeps them honest.
 
 Look at what you (or the user) just edited — `git diff`, or the routes/models named in
 the request. You're looking for two things:
-- **Routes** in `src/disco_server/blueprints/*.py`: added, removed, or a changed set of
+- **Routes** in `src/disco_server/disco_server/blueprints/*.py`: added, removed, or a changed set of
   path params / request body / response shape / status codes.
-- **View models** in `src/disco_server/web/view_models/{request_models,response_models}/*.py`:
-  a pydantic `BaseModel` or dataclass gaining, losing, renaming, or retyping a field.
+- **View models** in `src/disco_shared/disco_shared/models/*.py` — a separate package from
+  disco_server (both disco_server and disco_client depend on it, so they agree on the wire
+  format): a pydantic `BaseModel` or dataclass gaining, losing, renaming, or retyping a field.
 
 A model change and a route change often arrive together (add a field to `TrackUpdate`,
 wire it into `update_track`) — handle both in the same pass so the docs and the route
@@ -31,10 +32,10 @@ land in the same state.
 Run the bundled script against every model that changed:
 
 ```
-source env/bin/activate && python .claude/skills/update-swagger-docs/scripts/generate_definitions.py \
-  disco_server.web.view_models.response_models.track_details.TrackDetails:serialization \
-  disco_server.web.view_models.request_models.track_update.TrackUpdate \
-  disco_server.web.view_models.response_models.error.Error
+src/disco_server/.venv/bin/python .claude/skills/update-swagger-docs/scripts/generate_definitions.py \
+  disco_shared.models.track_details.TrackDetails:serialization \
+  disco_shared.models.track_update.TrackUpdate \
+  disco_shared.models.error.Error
 ```
 
 It prints a JSON fragment ready to merge into `definitions`. Hand-writing these by eye
@@ -61,7 +62,7 @@ directly instead — pass them with no mode suffix.
 
 ## 3. Merge into `swagger_template.py`
 
-Open `src/disco_server/web/swagger_template.py` and replace only the entries for the
+Open `src/disco_server/disco_server/web/swagger_template.py` and replace only the entries for the
 models that changed inside the `definitions` dict returned by `build_swagger_template()`.
 Leave every untouched model's entry exactly as it was — a full rewrite makes the diff
 noisy and risks silently reverting an intentional tweak to an unrelated definition.
@@ -82,7 +83,7 @@ error, so a green test suite is necessary but not sufficient proof the block its
 Check both:
 
 ```
-source env/bin/activate && python3 -m pytest tests/integration -v
+src/disco_server/.venv/bin/python -m pytest tests/integration -v
 ```
 
 and that the spec itself reflects your changes, using the Flask test client rather than a
