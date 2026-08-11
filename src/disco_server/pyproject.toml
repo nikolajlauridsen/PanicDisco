@@ -15,8 +15,14 @@ dependencies = [
     "SQLAlchemy",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest"]
+
 [tool.uv.sources]
-disco_core = { workspace = true }
+disco_core = { path = "../disco_core", editable = true }
+
+[tool.uv]
+config-settings = { editable_mode = "compat" }
 
 [tool.setuptools.packages.find]
 where = ["."]
