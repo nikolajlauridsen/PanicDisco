@@ -51,16 +51,11 @@ wheels = [
 ]
 
 [[package]]
-name = "disco-core"
-version = "0.1.0"
-source = { editable = "../disco_core" }
-
-[[package]]
 name = "disco-server"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "disco-core" },
+    { name = "disco-shared" },
     { name = "flasgger" },
     { name = "flask" },
     { name = "pydantic" },
@@ -75,7 +70,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "disco-core", editable = "../disco_core" },
+    { name = "disco-shared", editable = "../disco_shared" },
     { name = "flasgger" },
     { name = "flask" },
     { name = "pydantic" },
@@ -84,6 +79,17 @@ requires-dist = [
     { name = "sqlalchemy" },
 ]
 provides-extras = ["dev"]
+
+[[package]]
+name = "disco-shared"
+version = "0.1.0"
+source = { editable = "../disco_shared" }
+dependencies = [
+    { name = "pydantic" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "pydantic" }]
 
 [[package]]
 name = "flasgger"

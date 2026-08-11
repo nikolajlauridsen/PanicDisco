@@ -1,6 +1,6 @@
 from flask import jsonify
 
-from disco_server.web.view_models.response_models.error import Error
+from disco_shared.models.error import Error
 
 
 def not_found():

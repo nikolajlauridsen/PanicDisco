@@ -1,4 +1,4 @@
-from disco_core.models.track import Track
+from disco_server.core.models.track import Track
 from disco_server.core.database.database import Database
 
 class TrackLibrary:

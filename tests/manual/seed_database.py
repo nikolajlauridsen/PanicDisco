@@ -2,7 +2,7 @@ import os
 
 from disco_server import create_app
 from disco_server.core.services.track_library import TrackLibrary
-from disco_core.models.track import Track
+from disco_server.core.models.track import Track
 
 def create_library(database, directory : str, files: list[str]) -> TrackLibrary:
     library = TrackLibrary(database)

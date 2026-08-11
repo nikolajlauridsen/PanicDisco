@@ -3,7 +3,7 @@ import io
 import pytest
 
 from disco_server import create_app, services
-from disco_core.models.track import Track
+from disco_server.core.models.track import Track
 from disco_server.core.services import file_manager
 
 

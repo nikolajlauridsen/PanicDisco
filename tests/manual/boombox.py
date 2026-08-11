@@ -3,7 +3,7 @@ import time
 from disco_server import create_app
 from disco_server.core.services.boombox import Boombox
 from disco_server.core.services.track_library import TrackLibrary
-from disco_core.models.track import Track
+from disco_server.core.models.track import Track
 
 app = create_app()
 library = TrackLibrary(app.database)

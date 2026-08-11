@@ -1,5 +1,5 @@
 from disco_server.web.mapping import mapper
-from disco_server.web.view_models.response_models.track_details import TrackDetails
+from disco_shared.models.track_details import TrackDetails
 
 
 def test_map_to_track_details_maps_matching_fields(make_track):

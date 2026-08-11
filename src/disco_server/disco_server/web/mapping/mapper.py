@@ -1,8 +1,8 @@
-from disco_core.models.track import Track
-from disco_server.web.view_models.request_models.track_update import TrackUpdate
-from disco_server.web.view_models.request_models.track_upload import TrackUpload
-from disco_server.web.view_models.response_models.track_details import TrackDetails
-from disco_server.web.view_models.response_models.track_entity import TrackEntity
+from disco_server.core.models.track import Track
+from disco_shared.models.track_update import TrackUpdate
+from disco_shared.models.track_upload import TrackUpload
+from disco_shared.models.track_details import TrackDetails
+from disco_shared.models.track_entity import TrackEntity
 
 
 def map_to_track_details(track: Track) -> TrackDetails:

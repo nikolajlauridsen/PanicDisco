@@ -3,7 +3,7 @@ from pathlib import Path
 import vlc
 from vlc import MediaPlayer
 
-from disco_core.models.track import Track
+from disco_server.core.models.track import Track
 
 class Boombox:
     """A single-track audio player backed by VLC.
