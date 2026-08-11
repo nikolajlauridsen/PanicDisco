@@ -2,15 +2,6 @@ version = 1
 revision = 3
 requires-python = ">=3.12"
 
-[manifest]
-members = [
-    "disco-core",
-    "disco-server",
-]
-
-[manifest.dependency-groups]
-dev = [{ name = "pytest" }]
-
 [[package]]
 name = "annotated-types"
 version = "0.8.0"
@@ -62,12 +53,12 @@ wheels = [
 [[package]]
 name = "disco-core"
 version = "0.1.0"
-source = { editable = "src/disco_core" }
+source = { editable = "../disco_core" }
 
 [[package]]
 name = "disco-server"
 version = "0.1.0"
-source = { editable = "src/disco_server" }
+source = { editable = "." }
 dependencies = [
     { name = "disco-core" },
     { name = "flasgger" },
@@ -77,15 +68,22 @@ dependencies = [
     { name = "sqlalchemy" },
 ]
 
+[package.optional-dependencies]
+dev = [
+    { name = "pytest" },
+]
+
 [package.metadata]
 requires-dist = [
-    { name = "disco-core", editable = "src/disco_core" },
+    { name = "disco-core", editable = "../disco_core" },
     { name = "flasgger" },
     { name = "flask" },
     { name = "pydantic" },
+    { name = "pytest", marker = "extra == 'dev'" },
     { name = "python-vlc" },
     { name = "sqlalchemy" },
 ]
+provides-extras = ["dev"]
 
 [[package]]
 name = "flasgger"
