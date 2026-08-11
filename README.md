@@ -144,8 +144,14 @@ client = DiscoClient("http://disco-server.local:5000")
 for track in client.tracks.list_tracks():
     print(track.id, track.name)
 ```
-See `tests/manual/list_tracks_client.py` for a runnable version of this — it expects
-a `disco_server` instance already running (see [Getting started](#getting-started)).
+See `tests/manual/track_manager.py` for a fuller, interactive proof-of-concept CLI
+built on the same client — list/get/upload/update/delete tracks against a real
+`disco_server` instance (see [Getting started](#getting-started) for getting one
+running). Needs `disco_client` synced first (`cd src/disco_client && uv sync --extra
+dev`), then run it via the wrapper script from the repo root:
+```
+./scripts/track-manager.sh
+```
 
 ## Deploying `disco_server` to a Raspberry Pi
 
