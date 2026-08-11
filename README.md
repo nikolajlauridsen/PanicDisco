@@ -83,17 +83,20 @@ uv sync --extra dev
 
 ## Tests
 
-Each package's own venv is what runs the tests — there's no shared root venv. The
-integration suite exercises `disco_server` (and transitively `disco_shared`), so run
-it via `disco_server`'s venv, from the repo root (so pytest finds `tests/` and the
-root `pyproject.toml`'s pytest config):
+Each package's own venv is what runs its tests — there's no shared root venv. Run
+each from the repo root, via the matching package's venv (so pytest finds `tests/`
+and the root `pyproject.toml`'s config):
 ```
-src/disco_server/.venv/bin/python -m pytest tests/integration -v
+src/disco_server/.venv/bin/python -m pytest tests/integration -v   # disco_server + disco_shared, real SQLite, VLC mocked
+src/disco_client/.venv/bin/python -m pytest tests/disco_client -v  # disco_client, HTTP mocked via requests-mock
+src/disco_shared/.venv/bin/python -m pytest tests/disco_shared -v  # disco_shared's own models
+src/disco_server/.venv/bin/python -m pytest tests/e2e -v           # disco_client against a REAL disco_server, real HTTP
 ```
-or, from inside `src/disco_server`:
-```
-uv run python -m pytest ../../tests/integration -v
-```
+The last one needs `disco_server` synced with its `e2e` extra too (`uv sync --extra
+dev --extra e2e` — pulls in `disco_client` as a local dependency), since it runs a
+real server on a real socket to prove the client and server actually agree on the
+wire format, which the mocked `disco_client` suite can't catch on its own (e.g. a
+changed route path or header format).
 
 ## Frontend (Tailwind CSS)
 

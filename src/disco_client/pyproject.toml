@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "requests-mock"]
 
 [tool.uv.sources]
 disco_shared = { path = "../disco_shared", editable = true }

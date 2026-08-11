@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  disco_server:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,14 +21,76 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libvlc-dev
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: 'pip'
 
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
+      - name: Sync disco_server
+        working-directory: src/disco_server
+        run: uv sync --extra dev
 
-      - name: Run tests
-        run: python -m pytest tests/integration -v
+      - name: Run disco_server integration tests
+        run: src/disco_server/.venv/bin/python -m pytest tests/integration -v
+
+  e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.14']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install libvlc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libvlc-dev
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Sync disco_server (with disco_client for the e2e suite)
+        working-directory: src/disco_server
+        run: uv sync --extra dev --extra e2e
+
+      - name: Run end-to-end tests (real disco_server + real disco_client, real HTTP)
+        run: src/disco_server/.venv/bin/python -m pytest tests/e2e -v
+
+  disco_client:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.12'
+
+      - name: Sync disco_client
+        working-directory: src/disco_client
+        run: uv sync --extra dev
+
+      - name: Run disco_client tests
+        run: src/disco_client/.venv/bin/python -m pytest tests/disco_client -v
+
+  disco_shared:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.12'
+
+      - name: Sync disco_shared
+        working-directory: src/disco_shared
+        run: uv sync --extra dev
+
+      - name: Run disco_shared tests
+        run: src/disco_shared/.venv/bin/python -m pytest tests/disco_shared -v

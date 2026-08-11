@@ -18,9 +18,11 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest"]
 deploy = ["waitress"]
+e2e = ["disco_client"]
 
 [tool.uv.sources]
 disco_shared = { path = "../disco_shared", editable = true }
+disco_client = { path = "../disco_client", editable = true }
 
 [tool.uv]
 config-settings = { editable_mode = "compat" }
