@@ -2,8 +2,8 @@
   "name": "disco-server-ui",
   "private": true,
   "scripts": {
-    "build:css": "tailwindcss -i ./src/disco_server/src/disco_server/assets/css/input.css -o ./src/disco_server/src/disco_server/static/css/tailwind.css --minify",
-    "watch:css": "tailwindcss -i ./src/disco_server/src/disco_server/assets/css/input.css -o ./src/disco_server/src/disco_server/static/css/tailwind.css --watch"
+    "build:css": "tailwindcss -i ./src/disco_server/disco_server/assets/css/input.css -o ./src/disco_server/disco_server/static/css/tailwind.css --minify",
+    "watch:css": "tailwindcss -i ./src/disco_server/disco_server/assets/css/input.css -o ./src/disco_server/disco_server/static/css/tailwind.css --watch"
   },
   "devDependencies": {
     "tailwindcss": "^4",

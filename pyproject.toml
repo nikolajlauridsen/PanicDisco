@@ -2,6 +2,9 @@
 members = ["src/*"]
 exclude = ["src/instance", "src/.claude"]
 
+[tool.uv]
+config-settings = { editable_mode = "compat" }
+
 [dependency-groups]
 dev = ["pytest"]
 
