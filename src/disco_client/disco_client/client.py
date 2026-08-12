@@ -12,8 +12,7 @@ class DiscoClient:
         """base_url is disco_server's root URL, e.g. http://disco-server:5000.
 
         Endpoint-group clients hang off attributes here (`.tracks`,
-        `.boombox`; a panic client would follow the same pattern) and all
-        share this one Session/timeout.
+        `.boombox`, `.panic`) and all share this one Session/timeout.
         """
         self.base_url = base_url.rstrip('/')
         self.timeout = timeout
