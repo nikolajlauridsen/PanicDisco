@@ -14,7 +14,7 @@ from disco_client.clients.client_base import ClientBase
 class TrackClient(ClientBase):
     """HTTP client for disco_server's /api/tracks endpoints."""
 
-    def __init__(self, session: Session | None, base_url: str, timeout: float) -> None:
+    def __init__(self, session: Session | None, base_url: str, timeout: float | int) -> None:
         """base_url is disco_server's root URL (e.g. http://disco-server:5000)
         - /api/tracks gets appended once here, so callers/other methods never
         repeat it.
