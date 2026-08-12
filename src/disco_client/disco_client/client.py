@@ -1,6 +1,7 @@
 import requests
 
 from disco_client.clients.boombox_client import BoomboxClient
+from disco_client.clients.panic_client import PanicClient
 from disco_client.clients.track_client import TrackClient
 
 
@@ -19,4 +20,5 @@ class DiscoClient:
         self.session = requests.Session()
         self.tracks = TrackClient(self.session, self.base_url, self.timeout)
         self.boombox = BoomboxClient(self.session, self.base_url, self.timeout)
+        self.panic = PanicClient(self.session, self.base_url, self.timeout)
 
