@@ -2,6 +2,7 @@
 #include <driver/rtc_io.h>
 
 #include "disco_client.h"
+#include "log.h"
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
 #include "wifi_connection.h"
 
@@ -30,13 +31,13 @@ void handlePanicbutton()
 {
     if (wifi_connection::connect() == false)
     {
-        Serial.printf("Couldn't connect :( skipping");
+        LOG("Couldn't connect :( skipping\n");
     }
 
     if (panicMode == false)
     {
         const int status = disco.panicStart();
-        Serial.printf("POST /panic/start -> %d\n", status);
+        LOG("POST /panic/start -> %d\n", status);
         if (status == 200)
         {
             panicMode = true;
@@ -45,7 +46,7 @@ void handlePanicbutton()
     else
     {
         const int status = disco.panicStop();
-        Serial.printf("POST /panic/stop -> %d\n", status);
+        LOG("POST /panic/stop -> %d\n", status);
         if (status == 200)
         {
             panicMode = false;
@@ -57,28 +58,31 @@ void handleLidOpened()
 {
     while (digitalRead(REED_PIN) == HIGH)
     {
-        Serial.println("Lid open...");
+        LOG("Lid open...\n");
         delay(500);
     }
 }
 
 void enterSleep()
 {
+    digitalWrite(LED_BUILTIN, HIGH);
     esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK | REED_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
-    Serial.println("Going to sleep now");
-    Serial.flush();
+    LOG("Going to sleep now\n");
+    LOG_FLUSH();
     esp_deep_sleep_start();
 }
 
 void setup()
 {
+    // For debugging purposes let's enable our LED
+    // Weirdly for the builtin LED low = on
+    pinMode(LED_BUILTIN, OUTPUT);
+    digitalWrite(LED_BUILTIN, LOW);
+    LOG_BEGIN(); // no-op in the release build; opens the port and waits for USB enumeration in debug
     const uint32_t t0 = millis();
-    Serial.begin(115200);
-    delay(100);
     // Re-arm the reed pin.
     rtc_gpio_deinit(REED_PIN);
     pinMode(REED_PIN, INPUT);
-    delay(3000);
 
     // The reed switch is static high when the lid is open, so it's an easy way to determine what path to take
     int reedValue = digitalRead(REED_PIN);
@@ -91,8 +95,7 @@ void setup()
         handlePanicbutton();
     }
 
-    const uint32_t t_final = millis() - t0 - 3000;
-    Serial.printf("Total in setup: %lu ms\n", t_final);
+    LOG("Total in setup: %lu ms\n", millis() - t0);
 
     enterSleep();
 }

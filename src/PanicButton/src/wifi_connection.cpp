@@ -4,6 +4,7 @@
 #include <WiFi.h>
 #include <cstring>
 
+#include "log.h"
 #include "secrets.h"
 
 namespace
@@ -51,10 +52,10 @@ namespace wifi_connection
             std::memcpy(savedBssid, WiFi.BSSID(), BSSID_LEN);
         }
 
-        Serial.printf("WiFi %s in %lu ms\n", ok ? "connected" : "FAILED", millis() - t0);
+        LOG("WiFi %s in %lu ms\n", ok ? "connected" : "FAILED", millis() - t0);
         if (ok)
         {
-            Serial.println(WiFi.localIP());
+            LOG("IP %s\n", WiFi.localIP().toString().c_str());
         }
         return ok;
     }

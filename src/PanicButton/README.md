@@ -12,6 +12,7 @@ src/
   wifi_connection.*     fast Wi-Fi reconnect (remembers channel/BSSID across sleep, static IP)
   disco_client.*        DiscoClient: one method per disco_server endpoint (panicStart/panicStop, ...)
 include/
+  log.h                 LOG()/LOG_BEGIN()/LOG_FLUSH(): serial logging in the debug env, nothing in release
   secrets.example.h     template for secrets.h: Wi-Fi credentials, static IP, API base URL
   secrets.h             your copy - gitignored
 platformio.ini          board/platform config (portable); huge_app partition table = 3 MB app, no OTA
@@ -52,10 +53,33 @@ the same file and mirror the new `#define` with a placeholder in `secrets.exampl
 Run from this directory (`src/PanicButton`):
 
 ```bash
-pio run                  # build
+pio run                  # build (the debug env - see below)
 pio run -t upload        # build + flash (board plugged in; port is auto-detected)
 pio device monitor       # serial monitor at 115200 baud (monitor_speed in platformio.ini)
 ```
+
+### Debug vs release builds
+
+There are two PlatformIO environments:
+
+| env | what it is |
+|---|---|
+| `seeed_xiao_esp32c6_debug` | **default** while developing. Serial logging on: `LOG_BEGIN()` opens the port and waits 3 s for Windows to re-enumerate the USB device after a deep-sleep wake, so you actually see the output. |
+| `seeed_xiao_esp32c6` | the release build for the real button. Identical, except the `LOG*` macros in `include/log.h` compile to nothing: no serial, no 3 s wait, no log strings in the binary. |
+
+```bash
+pio run -e seeed_xiao_esp32c6 -t upload    # flash the release build
+```
+
+Log with the macros, never with `Serial` directly, so the release build stays silent:
+
+```cpp
+LOG("POST /panic/start -> %d
+", status);   // printf-style
+LOG_FLUSH();                                  // before deep sleep, so the last lines get out
+```
+
+In VS Code the env picker in the PlatformIO status bar (bottom) switches which one the build/upload buttons use.
 
 Or use the PlatformIO toolbar buttons at the bottom of VS Code, which do the same thing.
 
