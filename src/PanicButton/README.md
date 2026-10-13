@@ -4,6 +4,22 @@ Firmware for the panic button itself: a [Seeed Studio XIAO ESP32-C6](https://wik
 built with [PlatformIO](https://platformio.org/) and the Arduino framework. It will eventually talk to `disco_server`'s
 panic API (`POST /api/panic/start` / `POST /api/panic/stop`) over Wi-Fi; right now it's a bring-up sketch.
 
+## Layout
+
+```
+src/
+  main.cpp              wake -> connect -> fire request -> deep sleep; nothing else
+  wifi_connection.*     fast Wi-Fi reconnect (remembers channel/BSSID across sleep, static IP)
+  disco_client.*        DiscoClient: one method per disco_server endpoint (panicStart/panicStop, ...)
+include/
+  secrets.example.h     template for secrets.h: Wi-Fi credentials, static IP, API base URL
+  secrets.h             your copy - gitignored
+platformio.ini          board/platform config (portable); huge_app partition table = 3 MB app, no OTA
+platformio.local.ini    your COM port etc. - gitignored
+```
+
+New server endpoints become methods on `DiscoClient`; `main.cpp` should stay a handful of lines.
+
 ## Prerequisites
 
 * VS Code with the [PlatformIO IDE](https://marketplace.visualstudio.com/items?itemName=platformio.platformio-ide) extension
@@ -26,13 +42,10 @@ public). Create it from the committed template and fill it in:
 cp include/secrets.example.h include/secrets.h
 ```
 
-```c
-#define WIFI_SSID     "your-network-name"
-#define WIFI_PASSWORD "your-network-password"
-```
-
-If you add more secrets later (server address, tokens), put them in the same file and mirror the new `#define`
-with a placeholder in `secrets.example.h` so the template stays complete.
+It holds everything specific to your network, not just the password: the Wi-Fi credentials, the static IP the
+button should use (reserve it in your router — static IP is what lets it skip DHCP on every wake), and
+`API_BASE_URL` for the `disco_server` instance it should call. If you add more later (tokens, ...), put them in
+the same file and mirror the new `#define` with a placeholder in `secrets.example.h` so the template stays complete.
 
 ## Build, flash, monitor
 
