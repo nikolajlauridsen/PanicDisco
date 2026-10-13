@@ -1,0 +1,14 @@
+# Formatting rules for clangd / clang-format (Ctrl+K Ctrl+D in VS Code).
+# Microsoft style = the C#/Visual Studio look: Allman braces (every brace on
+# its own line, including if/for/while), 4-space indent, 120 columns.
+BasedOnStyle: Microsoft
+IndentWidth: 4
+ColumnLimit: 120
+BreakBeforeBraces: Allman
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+PointerAlignment: Left
+SortIncludes: true
+IncludeBlocks: Preserve
+NamespaceIndentation: All
