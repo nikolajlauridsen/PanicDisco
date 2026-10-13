@@ -25,15 +25,18 @@ namespace
         // Static IP: skips DHCP negotiation, which is a measurable part of the connect time.
         WiFi.config(IPAddress(STATIC_IP), IPAddress(GATEWAY_IP), IPAddress(SUBNET_MASK), IPAddress(DNS_IP));
 
-        if (useSavedAccessPoint) {
+        if (useSavedAccessPoint)
+        {
             // Skips the channel scan entirely - needs the channel/BSSID to still be valid.
             WiFi.begin(WIFI_SSID, WIFI_PASSWORD, savedChannel, savedBssid);
-        } else {
+        }
+        else
+        {
             WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         }
         return WiFi.waitForConnectResult(CONNECT_TIMEOUT_MS) == WL_CONNECTED;
     }
-}
+} // namespace
 
 namespace wifi_connection
 {
@@ -42,15 +45,17 @@ namespace wifi_connection
         const uint32_t t0 = millis();
         const bool ok = (savedChannel != 0 && attempt(true)) || attempt(false);
 
-        if (ok) {
+        if (ok)
+        {
             savedChannel = WiFi.channel();
             std::memcpy(savedBssid, WiFi.BSSID(), BSSID_LEN);
         }
 
         Serial.printf("WiFi %s in %lu ms\n", ok ? "connected" : "FAILED", millis() - t0);
-        if (ok) {
+        if (ok)
+        {
             Serial.println(WiFi.localIP());
         }
         return ok;
     }
-}
+} // namespace wifi_connection

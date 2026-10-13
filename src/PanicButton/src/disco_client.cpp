@@ -2,7 +2,9 @@
 
 #include <HTTPClient.h>
 
-DiscoClient::DiscoClient(const char* baseUrl) : baseUrl_(baseUrl) {}
+DiscoClient::DiscoClient(const char* baseUrl) : baseUrl_(baseUrl)
+{
+}
 
 int DiscoClient::panicStart()
 {
