@@ -19,26 +19,44 @@ For different SoCs, the related GPIOs are:
 static constexpr gpio_num_t BUTTON_PIN = GPIO_NUM_0;
 #define BUTTON_PIN_BITMASK (1ULL << BUTTON_PIN)
 
-RTC_DATA_ATTR int bootCount = 0;
+RTC_DATA_ATTR bool panicMode = false;
 
 static DiscoClient disco(API_BASE_URL);
 
 void setup()
 {
+    const uint32_t t0 = millis();
     Serial.begin(115200);
     delay(100);
     delay(3000);
 
-    ++bootCount;
-    Serial.println("Boot number: " + String(bootCount));
-
     if (wifi_connection::connect()) {
-        const int status = disco.panicStart();
-        Serial.printf("POST /panic/start -> %d\n", status);
+        if(panicMode == false)
+        {
+            const int status = disco.panicStart();
+            Serial.printf("POST /panic/start -> %d\n", status);
+            if(status == 200)
+            {
+                panicMode = true;
+            }
+        } 
+        else
+        {
+            const int status = disco.panicStop();
+            Serial.printf("POST /panic/stop -> %d\n", status);
+            if(status == 200)
+            {
+                panicMode = false;
+            }
+        }
+    
+        const uint32_t t_final = millis() - t0 - 3000;
+        Serial.printf("Total in setup: %lu ms\n", t_final);
     }
 
     esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
     Serial.println("Going to sleep now");
+    Serial.flush();
     esp_deep_sleep_start();
 }
 
