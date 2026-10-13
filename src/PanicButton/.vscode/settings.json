@@ -1,0 +1,23 @@
+{
+    // IntelliSense is provided by clangd (see .clangd + compile_commands.json,
+    // regenerate the latter with `pio run -t compiledb` after adding files or
+    // libraries). Disable the Microsoft C/C++ extension's engine so the two
+    // don't fight over completions and diagnostics.
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "C_Cpp.autocomplete": "disabled",
+    "C_Cpp.errorSquiggles": "disabled",
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}",
+        "--query-driver=**/riscv32-esp-elf-*",
+        "--background-index",
+        "--header-insertion=never",
+        "--completion-style=detailed",
+        "--function-arg-placeholders=true"
+    ],
+    "[cpp]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    },
+    "[c]": {
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd"
+    }
+}

@@ -34,6 +34,9 @@ and its own `uv`-managed virtual environment, living under `src/`:
   JSON API, meant to be consumed by other Python projects (e.g. a future button/panic
   hardware project) without pulling in Flask, VLC, or SQLAlchemy — see
   [`disco_client`](#disco_client) below.
+- **`PanicButton`** — the panic-button firmware itself: a PlatformIO/Arduino project
+  for a Seeed XIAO ESP32-C6, not a Python package. Build/flash/IntelliSense setup is
+  in its own [README](src/PanicButton/README.md).
 
 Why split it like this instead of one big package? The hardware/button project this
 is ultimately for shouldn't need Flask, VLC, or SQLAlchemy installed just to make an

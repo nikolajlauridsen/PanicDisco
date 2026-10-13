@@ -1,0 +1,24 @@
+# clangd configuration for the PanicButton firmware.
+#
+# PlatformIO's compile_commands.json (regenerate with `pio run -t compiledb`)
+# names the compiler as a bare `riscv32-esp-elf-g++`, which is only on PATH
+# inside PlatformIO's own build environment. Point clangd at the real binary so
+# it can infer the RISC-V target and query the toolchain's system include paths
+# (see --query-driver in .vscode/settings.json).
+CompileFlags:
+  Compiler: C:/Users/nikol/.platformio/packages/toolchain-riscv32-esp/bin/riscv32-esp-elf-g++.exe
+  # GCC-only flags clang doesn't understand; dropping them avoids spurious
+  # "unknown argument"/"unknown warning group" diagnostics in every file.
+  Remove:
+    - -fstrict-volatile-bitfields
+    - -fno-tree-switch-conversion
+    - -freorder-blocks
+    - -Wno-error=maybe-uninitialized
+    - -Wno-error=uninitialized
+    - -mlongcalls
+    - -fno-shrink-wrap
+Diagnostics:
+  # The Arduino core and ESP-IDF headers trip a lot of clang-only warnings
+  # that gcc (the real compiler) never shows; keep diagnostics to our own code.
+  Suppress:
+    - unused-command-line-argument
