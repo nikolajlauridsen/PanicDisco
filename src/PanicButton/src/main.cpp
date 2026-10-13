@@ -27,7 +27,7 @@ void handlePanicbutton()
 {
     if (wifi_connection::connect() == false)
     {
-        Serial.printf("Couldn't connect :( skipping")
+        Serial.printf("Couldn't connect :( skipping");
     }
 
     if (panicMode == false)
@@ -50,6 +50,14 @@ void handlePanicbutton()
     }
 }
 
+void enterSleep()
+{
+    esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
+    Serial.println("Going to sleep now");
+    Serial.flush();
+    esp_deep_sleep_start();
+}
+
 void setup()
 {
     const uint32_t t0 = millis();
@@ -62,10 +70,7 @@ void setup()
     const uint32_t t_final = millis() - t0 - 3000;
     Serial.printf("Total in setup: %lu ms\n", t_final);
 
-    esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
-    Serial.println("Going to sleep now");
-    Serial.flush();
-    esp_deep_sleep_start();
+    enterSleep();
 }
 
 void loop()
