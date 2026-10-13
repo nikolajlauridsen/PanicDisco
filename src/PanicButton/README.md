@@ -17,6 +17,23 @@ The ESP32 toolchain, Arduino core and everything else is downloaded automaticall
 > toolchain install runs ESP-IDF's `idf_tools.py`, which aborts with `MSys/Mingw is not supported` if the `MSYSTEM`
 > environment variable is set. Once the toolchain is installed, building from Git Bash works fine.
 
+## Wi-Fi credentials
+
+The sketch reads the network name and password from `include/secrets.h`, which is **gitignored** (this repo is
+public). Create it from the committed template and fill it in:
+
+```bash
+cp include/secrets.example.h include/secrets.h
+```
+
+```c
+#define WIFI_SSID     "your-network-name"
+#define WIFI_PASSWORD "your-network-password"
+```
+
+If you add more secrets later (server address, tokens), put them in the same file and mirror the new `#define`
+with a placeholder in `secrets.example.h` so the template stays complete.
+
 ## Build, flash, monitor
 
 Run from this directory (`src/PanicButton`):
@@ -28,6 +45,35 @@ pio device monitor       # serial monitor at 115200 baud (monitor_speed in platf
 ```
 
 Or use the PlatformIO toolbar buttons at the bottom of VS Code, which do the same thing.
+
+## Serial monitor
+
+The XIAO ESP32-C6 talks over the chip's built-in USB serial, so **every reset re-enumerates the USB device** and the
+COM port disappears for a moment. PlatformIO's monitor reconnects automatically when that happens — as long as it
+knows which port to come back to. Auto-detection is unreliable on this board (the port reports Espressif's vendor ID,
+not the one in the board definition, and any Bluetooth COM ports compete with it), so pin it:
+
+1. Find the board's port with `pio device list` — it's the `USB VID:PID=303A:1001` entry.
+2. Put it in `platformio.local.ini` next to `platformio.ini` (gitignored, merged in via `extra_configs`):
+
+   ```ini
+   [env:seeed_xiao_esp32c6]
+   upload_port = COM7
+   monitor_port = COM7
+   ```
+
+Then run the monitor in a terminal **outside** VS Code's task runner if you want it to outlive rebuilds and
+uploads — any PowerShell/Windows Terminal window will do:
+
+```bash
+pio device monitor      # reconnects by itself after the board resets; Ctrl+C to quit
+```
+
+(`pio run -t upload` can't flash while a monitor holds the port — close it first, or let the VS Code task do both
+with "Upload and Monitor".)
+
+`monitor_filters = esp32_exception_decoder` in `platformio.ini` turns crash backtraces in the monitor into
+file:line references using the current `firmware.elf`.
 
 ## IntelliSense (clangd)
 
