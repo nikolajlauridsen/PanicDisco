@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <driver/rtc_io.h>
 
 #include "disco_client.h"
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
@@ -17,7 +18,9 @@ For different SoCs, the related GPIOs are:
 - ESP32-H2: 7-14
 */
 static constexpr gpio_num_t BUTTON_PIN = GPIO_NUM_0;
+static constexpr gpio_num_t REED_PIN = GPIO_NUM_1;
 #define BUTTON_PIN_BITMASK (1ULL << BUTTON_PIN)
+#define REED_PIN_BITMASK (1ULL << REED_PIN)
 
 RTC_DATA_ATTR bool panicMode = false;
 
@@ -50,9 +53,18 @@ void handlePanicbutton()
     }
 }
 
+void handleLidOpened()
+{
+    while (digitalRead(REED_PIN) == HIGH)
+    {
+        Serial.println("Lid open...");
+        delay(500);
+    }
+}
+
 void enterSleep()
 {
-    esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
+    esp_sleep_enable_ext1_wakeup(BUTTON_PIN_BITMASK | REED_PIN_BITMASK, ESP_EXT1_WAKEUP_ANY_HIGH);
     Serial.println("Going to sleep now");
     Serial.flush();
     esp_deep_sleep_start();
@@ -63,9 +75,21 @@ void setup()
     const uint32_t t0 = millis();
     Serial.begin(115200);
     delay(100);
+    // Re-arm the reed pin.
+    rtc_gpio_deinit(REED_PIN);
+    pinMode(REED_PIN, INPUT);
     delay(3000);
 
-    handlePanicbutton();
+    // The reed switch is static high when the lid is open, so it's an easy way to determine what path to take
+    int reedValue = digitalRead(REED_PIN);
+    if (reedValue == HIGH)
+    {
+        handleLidOpened();
+    }
+    else
+    {
+        handlePanicbutton();
+    }
 
     const uint32_t t_final = millis() - t0 - 3000;
     Serial.printf("Total in setup: %lu ms\n", t_final);
