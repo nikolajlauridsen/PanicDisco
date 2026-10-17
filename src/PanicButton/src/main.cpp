@@ -33,15 +33,16 @@ void handlePanicbutton()
     }
     // Re-enable button pin so we can read
     pinMode(PANIC_BUTTON_PIN, INPUT);
-    
+
     const int status = disco.panicStart();
     LOG("POST /panic/start -> %d\n", status);
-    if(status != 200){
+    if (status != 200)
+    {
         LOG("Panic failed, exiting...\n");
         return;
     }
 
-    while(digitalRead(PANIC_BUTTON_PIN) == HIGH)
+    while (digitalRead(PANIC_BUTTON_PIN) == HIGH)
     {
         // The button is held high untill it's undone by twisting, so we'll play as long as it's high.
         // Small delay, just to be nice
@@ -50,16 +51,16 @@ void handlePanicbutton()
 
     // We should do our absolute best effort to stop the disco again
     uint8_t maxTries = 10;
-    for(int tries = 0; tries < maxTries; tries++)
+    for (int tries = 0; tries < maxTries; tries++)
     {
         const int stopStatus = disco.panicStop();
         LOG("POST /panic/stop -> %d\n", stopStatus);
-        if(stopStatus == 200)
+        if (stopStatus == 200)
         {
             break;
         }
-        LOG("Stop failed %d/%d tries.\n", tries+1, maxTries);
-        delay(100*tries);
+        LOG("Stop failed %d/%d tries.\n", tries + 1, maxTries);
+        delay(100 * tries);
     }
 }
 
@@ -83,6 +84,12 @@ void enterSleep()
 
 void setup()
 {
+    // If not waking from the pin wakeups we just exit immediately
+    if (esp_sleep_get_wakeup_cause() != ESP_SLEEP_WAKEUP_EXT1)
+    {
+        enterSleep();
+    }
+
     // For debugging purposes let's enable our LED
     // Weirdly for the builtin LED low = on
     pinMode(LED_BUILTIN, OUTPUT);
