@@ -18,12 +18,10 @@ For different SoCs, the related GPIOs are:
 - ESP32-C6: 0-7
 - ESP32-H2: 7-14
 */
-static constexpr gpio_num_t BUTTON_PIN = GPIO_NUM_0;
+static constexpr gpio_num_t PANIC_BUTTON_PIN = GPIO_NUM_0;
 static constexpr gpio_num_t REED_PIN = GPIO_NUM_1;
-#define BUTTON_PIN_BITMASK (1ULL << BUTTON_PIN)
+#define BUTTON_PIN_BITMASK (1ULL << PANIC_BUTTON_PIN)
 #define REED_PIN_BITMASK (1ULL << REED_PIN)
-
-RTC_DATA_ATTR bool panicMode = false;
 
 static DiscoClient disco(API_BASE_URL);
 
@@ -33,24 +31,35 @@ void handlePanicbutton()
     {
         LOG("Couldn't connect :( skipping\n");
     }
-
-    if (panicMode == false)
-    {
-        const int status = disco.panicStart();
-        LOG("POST /panic/start -> %d\n", status);
-        if (status == 200)
-        {
-            panicMode = true;
-        }
+    // Re-enable button pin so we can read
+    pinMode(PANIC_BUTTON_PIN, INPUT);
+    
+    const int status = disco.panicStart();
+    LOG("POST /panic/start -> %d\n", status);
+    if(status != 200){
+        LOG("Panic failed, exiting...\n");
+        return;
     }
-    else
+
+    while(digitalRead(PANIC_BUTTON_PIN) == HIGH)
     {
-        const int status = disco.panicStop();
-        LOG("POST /panic/stop -> %d\n", status);
-        if (status == 200)
+        // The button is held high untill it's undone by twisting, so we'll play as long as it's high.
+        // Small delay, just to be nice
+        delay(100);
+    }
+
+    // We should do our absolute best effort to stop the disco again
+    uint8_t maxTries = 10;
+    for(int tries = 0; tries < maxTries; tries++)
+    {
+        const int stopStatus = disco.panicStop();
+        LOG("POST /panic/stop -> %d\n", stopStatus);
+        if(stopStatus == 200)
         {
-            panicMode = false;
+            break;
         }
+        LOG("Stop failed %d/%d tries.\n", tries+1, maxTries);
+        delay(100*tries);
     }
 }
 
