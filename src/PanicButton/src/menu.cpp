@@ -1,34 +1,59 @@
-#include <Arduino.h>
 #include "menu.h"
+
+#include <Arduino.h>
+
 #include "pinout.h"
 
 namespace
 {
-    // Valid quadrature transitions: index is (previous state << 2) | current state,
-    // each state being (A << 1) | B. +1/-1 for a legal quarter step, 0 for no
-    // change or an illegal jump (both pins changed at once = contact noise).
-    const int8_t QUADRATURE_TABLE[16] = {
-        0,  -1, 1,  0, //
-        1,  0,  0,  -1, //
-        -1, 0,  0,  1, //
-        0,  1,  -1, 0, //
+    // How the KY-040 rotary encoder works
+    // ===================================
+    // Pins A and B are two switches that open and close slightly out of phase
+    // as the knob turns. Read together they give one of four combinations.
+    // We pack them into a single 2-bit number, A first then B, so e.g. 0b10
+    // means A is HIGH and B is LOW.
+    //
+    // Turning the knob one click (from one detent to the next) walks through
+    // all four combinations and ends up back where it started:
+    //
+    //   one direction:   AB = 11 -> 01 -> 00 -> 10 -> 11
+    //   the other way:   AB = 11 -> 10 -> 00 -> 01 -> 11
+    //
+    // Each move to a neighbouring combination is a "quarter step". Four quarter
+    // steps the same way is one click. A bouncing contact looks like a quarter
+    // step immediately followed by the reverse quarter step, so the two cancel
+    // out and no click is reported. That is what makes this immune to bounce
+    // without any timing-based debounce.
+
+    constexpr uint8_t AT_DETENT = 0b11; // Both pins HIGH: the knob is resting on a click
+
+    // Direction of a quarter step, looked up as QUARTER_STEP[previous][current].
+    // +1 is one way round, -1 the other. 0 means either no change, or both pins
+    // changed at the same time, which a real turn can never do, so it's noise.
+    const int8_t QUARTER_STEP[4][4] = {
+        // to:  00  01  10  11       from:
+        {0, -1, 1, 0},  // 00
+        {1, 0, 0, -1},  // 01
+        {-1, 0, 0, 1},  // 10
+        {0, 1, -1, 0},  // 11
     };
 
-    uint8_t encoderState = 0b11; // KY-040 rests with both pins HIGH at a detent
-    int8_t quarterSteps = 0;
+    uint8_t encoderState = AT_DETENT;
+    int8_t quarterSteps = 0; // Net quarter steps since the knob last rested on a detent
 
+    // Pack the two pins into one 2-bit number: A becomes bit 1, B becomes bit 0.
     uint8_t readEncoderState()
     {
-        return (digitalRead(PIN_A) << 1) | digitalRead(PIN_B);
+        const uint8_t a = digitalRead(PIN_A) ? 1 : 0;
+        const uint8_t b = digitalRead(PIN_B) ? 1 : 0;
+        return (a << 1) | b;
     }
 
     /**
      * Reads one step of the rotary encoder.
      *
-     * Decodes both pins as a Gray code state machine and only reports a step once
-     * a full cycle has completed back at a detent. Contact bounce shows up as a
-     * quarter step forward and back that cancel out, so no time-based debounce
-     * is needed.
+     * Tracks the pins through the four-combination cycle described above and
+     * only reports a step once the knob has come to rest on the next detent.
      *
      * @return menu::LEFT for a step counter-clockwise,
      *         menu::RIGHT for a step clockwise,
@@ -36,22 +61,25 @@ namespace
      */
     menu::Control readEncoder()
     {
-        const uint8_t state = readEncoderState();
-        if (state == encoderState)
+        const uint8_t previous = encoderState;
+        const uint8_t current = readEncoderState();
+        if (current == previous)
         {
             return menu::NoOp;
         }
-        quarterSteps += QUADRATURE_TABLE[(encoderState << 2) | state];
-        encoderState = state;
 
-        // A detent is reached when both pins are HIGH again. Only then do we know
-        // whether the accumulated quarter steps add up to a real click.
-        if (state != 0b11)
+        quarterSteps += QUARTER_STEP[previous][current];
+        encoderState = current;
+
+        // Only judge the movement once the knob is resting on a detent again.
+        if (current != AT_DETENT)
         {
             return menu::NoOp;
         }
+
         const int8_t steps = quarterSteps;
         quarterSteps = 0;
+
         if (steps >= 4)
         {
             return menu::RIGHT;
@@ -60,7 +88,7 @@ namespace
         {
             return menu::LEFT;
         }
-        return menu::NoOp; // bounced partway and came back, not a click
+        return menu::NoOp; // Wiggled part way and came back: not a click
     }
 } // namespace
 
@@ -76,7 +104,6 @@ namespace menu
         // Initialize encoder
         pinMode(PIN_A, INPUT);
         pinMode(PIN_B, INPUT);
-        // Read initial position
         encoderState = readEncoderState();
         quarterSteps = 0;
 
