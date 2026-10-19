@@ -3,11 +3,10 @@
 
 #include "disco_client.h"
 #include "log.h"
+#include "menu.h"
+#include "pinout.h"
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
 #include "wifi_connection.h"
-#include "pinout.h"
-#include "menu.h"
-
 
 static DiscoClient disco(API_BASE_URL);
 
@@ -50,26 +49,27 @@ void handlePanicbutton()
     }
 }
 
-static int encoderPosCount = 0;
-
 void handleLidOpened()
 {
     menu::initializeControls();
     while (digitalRead(REED_PIN) == HIGH)
     {
         int controlsValue = menu::readControls();
-        if (controlsValue == menu::RIGHT)
+
+        switch (controlsValue)
         {
+        case menu::RIGHT:
             LOG("Moving right...\n");
-            encoderPosCount++;
-        }
-        if (controlsValue == menu::LEFT)
-        {
+            break;
+        case menu::LEFT:
             LOG("Moving left...\n");
-            encoderPosCount--;
-        }
-        if(controlsValue != menu::NoOp){
-            LOG("Encoder positon: %d\n", encoderPosCount);
+            break;
+        case menu::ENTER:
+            LOG("Enter pushed...\n");
+            break;
+        case menu::BACK:
+            LOG("Back pushed...\n");
+            break;
         }
     }
 }

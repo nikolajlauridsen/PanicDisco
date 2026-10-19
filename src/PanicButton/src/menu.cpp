@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 
+#include "button.h"
 #include "pinout.h"
 
 namespace
@@ -32,10 +33,10 @@ namespace
     // changed at the same time, which a real turn can never do, so it's noise.
     const int8_t QUARTER_STEP[4][4] = {
         // to:  00  01  10  11       from:
-        {0, -1, 1, 0},  // 00
-        {1, 0, 0, -1},  // 01
-        {-1, 0, 0, 1},  // 10
-        {0, 1, -1, 0},  // 11
+        {0, -1, 1, 0}, // 00
+        {1, 0, 0, -1}, // 01
+        {-1, 0, 0, 1}, // 10
+        {0, 1, -1, 0}, // 11
     };
 
     uint8_t encoderState = AT_DETENT;
@@ -44,9 +45,8 @@ namespace
     // Pack the two pins into one 2-bit number: A becomes bit 1, B becomes bit 0.
     uint8_t readEncoderState()
     {
-        const uint8_t a = digitalRead(PIN_A) ? 1 : 0;
-        const uint8_t b = digitalRead(PIN_B) ? 1 : 0;
-        return (a << 1) | b;
+        // digitalRead returns exactly 0 or 1 on this core, so the bits pack directly.
+        return (digitalRead(PIN_A) << 1) | digitalRead(PIN_B);
     }
 
     /**
@@ -65,7 +65,7 @@ namespace
         const uint8_t current = readEncoderState();
         if (current == previous)
         {
-            return menu::NoOp;
+            return menu::NOOP;
         }
 
         quarterSteps += QUARTER_STEP[previous][current];
@@ -74,7 +74,7 @@ namespace
         // Only judge the movement once the knob is resting on a detent again.
         if (current != AT_DETENT)
         {
-            return menu::NoOp;
+            return menu::NOOP;
         }
 
         const int8_t steps = quarterSteps;
@@ -88,7 +88,32 @@ namespace
         {
             return menu::LEFT;
         }
-        return menu::NoOp; // Wiggled part way and came back: not a click
+        return menu::NOOP; // Wiggled part way and came back: not a click
+    }
+
+    // Enter is the KY-040's built-in push switch: shorts to GND when pressed,
+    // external pull-up on the board. Back is a plain button to 3V3 with an
+    // external pull-down. Both pull resistors are on the board, hence begin()
+    // with the default INPUT mode.
+    Button enterButton(ENTER_BUTTON_PIN, LOW);
+    Button backButton(BACK_BUTTON_PIN, HIGH);
+
+    menu::Control readButtons()
+    {
+        // Update both every call so a held button's release is always tracked,
+        // even when the other button's press is what gets reported.
+        const bool enterJustPressed = enterButton.justPressed();
+        const bool backJustPressed = backButton.justPressed();
+
+        if (enterJustPressed)
+        {
+            return menu::ENTER;
+        }
+        if (backJustPressed)
+        {
+            return menu::BACK;
+        }
+        return menu::NOOP;
     }
 } // namespace
 
@@ -96,7 +121,13 @@ namespace menu
 {
     Control readControls()
     {
-        return readEncoder();
+        Control readValue = readEncoder();
+        if (readValue != NOOP)
+        {
+            return readValue;
+        }
+
+        return readButtons();
     }
 
     void initializeControls()
@@ -108,5 +139,7 @@ namespace menu
         quarterSteps = 0;
 
         // Initialize buttons
+        enterButton.begin();
+        backButton.begin();
     }
 } // namespace menu

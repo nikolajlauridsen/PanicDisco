@@ -18,5 +18,7 @@ static constexpr gpio_num_t PANIC_BUTTON_PIN = GPIO_NUM_0;
 static constexpr gpio_num_t REED_PIN = GPIO_NUM_1;
 static constexpr gpio_num_t PIN_A = GPIO_NUM_19;
 static constexpr gpio_num_t PIN_B = GPIO_NUM_17;
+static constexpr gpio_num_t BACK_BUTTON_PIN = GPIO_NUM_20;
+static constexpr gpio_num_t ENTER_BUTTON_PIN = GPIO_NUM_18;
 #define BUTTON_PIN_BITMASK (1ULL << PANIC_BUTTON_PIN)
 #define REED_PIN_BITMASK (1ULL << REED_PIN)
