@@ -32,9 +32,9 @@ class Button
     bool justPressed();
 
   private:
-    gpio_num_t pin_;
-    int pressedLevel_;
-    uint32_t debounceMs_ = 25;
-    bool wasPressed_ = false;
-    uint32_t lastChange_ = 0;
+    gpio_num_t pin;
+    int pressedLevel;
+    uint32_t debounceMs = 25;
+    bool wasPressed = false;
+    uint32_t lastChange = 0;
 };

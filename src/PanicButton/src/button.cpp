@@ -1,31 +1,31 @@
 #include "button.h"
 
-Button::Button(gpio_num_t pin, int pressedLevel) : pin_(pin), pressedLevel_(pressedLevel)
+Button::Button(gpio_num_t pin, int pressedLevel) : pin(pin), pressedLevel(pressedLevel)
 {
 }
 
 void Button::begin(uint8_t pullMode)
 {
-    pinMode(pin_, pullMode);
-    wasPressed_ = digitalRead(pin_) == pressedLevel_;
-    lastChange_ = 0;
+    pinMode(pin, pullMode);
+    wasPressed = digitalRead(pin) == pressedLevel;
+    lastChange = 0;
 }
 
 void Button::setDebounce(uint32_t debounceMs)
 {
-    debounceMs_ = debounceMs;
+    debounceMs = debounceMs;
 }
 
 bool Button::justPressed()
 {
-    const bool pressed = digitalRead(pin_) == pressedLevel_;
+    const bool pressed = digitalRead(pin) == pressedLevel;
     const uint32_t now = millis();
-    if (pressed == wasPressed_ || now - lastChange_ < debounceMs_)
+    if (pressed == wasPressed || now - lastChange < debounceMs)
     {
         return false;
     }
 
-    wasPressed_ = pressed;
-    lastChange_ = now;
+    wasPressed = pressed;
+    lastChange = now;
     return pressed;
 }
