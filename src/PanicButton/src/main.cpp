@@ -63,12 +63,12 @@ void handleLidOpened()
             LOG("Moving right...\n");
             encoderPosCount++;
         }
-        if (controlsValue == -1)
+        if (controlsValue == menu::LEFT)
         {
             LOG("Moving left...\n");
             encoderPosCount--;
         }
-        if(controlsValue != 0){
+        if(controlsValue != menu::NoOp){
             LOG("Encoder positon: %d\n", encoderPosCount);
         }
     }
