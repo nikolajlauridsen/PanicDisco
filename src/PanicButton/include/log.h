@@ -18,10 +18,16 @@
 // Windows takes up to a couple of seconds to re-enumerate it; anything printed
 // before that is lost, hence the wait. Debug build only - this is dead time
 // on the press-to-request path.
+//
+// The TX timeout is zeroed because the core's USB CDC write otherwise blocks
+// (up to ~2 s per call) once the host's read buffer fills, which happens
+// whenever the cable is plugged in but no serial monitor is open. That stalls
+// any loop that logs, e.g. the encoder polling. Lost lines beat a frozen device.
 #define LOG_BEGIN()                                                                                                    \
     do                                                                                                                 \
     {                                                                                                                  \
         Serial.begin(115200);                                                                                          \
+        Serial.setTxTimeoutMs(0); /* drop output instead of blocking when nothing reads the port */                    \
         delay(3000);                                                                                                   \
     } while (0)
 #define LOG(...) Serial.printf(__VA_ARGS__)

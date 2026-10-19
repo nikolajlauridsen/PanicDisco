@@ -56,6 +56,7 @@ namespace display
         const uint16_t innerWidth = width - 2 * inset;
         const uint16_t fillWidth = (innerWidth * min<uint8_t>(progress, 100)) / 100;
 
+        // "Clear" the inner rectancle, this is nececary if the progress bar reduces, otherwise the old larger on would stick around
         screen.fillRect(x + inset, y + inset, innerWidth, height - 2 * inset, OBD_WHITE);
         if (fillWidth > 0)
         {
