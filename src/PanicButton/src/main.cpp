@@ -1,9 +1,11 @@
 #include <Arduino.h>
+
 #include <driver/rtc_io.h>
 
+#include "controls.h"
 #include "disco_client.h"
+#include "display.h"
 #include "log.h"
-#include "menu.h"
 #include "pinout.h"
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
 #include "wifi_connection.h"
@@ -49,29 +51,54 @@ void handlePanicbutton()
     }
 }
 
+RTC_DATA_ATTR uint8_t volume = 24;
+uint8_t oldVolume = volume;
 void handleLidOpened()
 {
-    menu::initializeControls();
+    controls::begin();
+    display::begin();
+    display::writeCentered("Volume", -4);
+    display::drawProgressBar(volume, 5);
+    display::update();
+
     while (digitalRead(REED_PIN) == HIGH)
     {
-        int controlsValue = menu::readControls();
+        int controlsValue = controls::read();
 
         switch (controlsValue)
         {
-        case menu::RIGHT:
+        case controls::RIGHT:
+            if (volume < 100)
+            {
+                volume += 2;
+            }
             LOG("Moving right...\n");
             break;
-        case menu::LEFT:
+        case controls::LEFT:
+            if (volume > 0)
+            {
+                volume -= 2;
+            }
             LOG("Moving left...\n");
             break;
-        case menu::ENTER:
+        case controls::ENTER:
             LOG("Enter pushed...\n");
             break;
-        case menu::BACK:
+        case controls::BACK:
             LOG("Back pushed...\n");
             break;
         }
+
+        if (oldVolume != volume)
+        {
+            display::drawProgressBar(volume, 5);
+            display::update();
+            oldVolume = volume;
+            LOG("Updating display %d volume\n", volume);
+        }
     }
+    
+    display::clear();
 }
 
 void enterSleep()

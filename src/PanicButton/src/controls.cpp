@@ -1,4 +1,4 @@
-#include "menu.h"
+#include "controls.h"
 
 #include <Arduino.h>
 
@@ -55,17 +55,17 @@ namespace
      * Tracks the pins through the four-combination cycle described above and
      * only reports a step once the knob has come to rest on the next detent.
      *
-     * @return menu::LEFT for a step counter-clockwise,
-     *         menu::RIGHT for a step clockwise,
-     *         menu::NoOp if the encoder has not moved since the last call.
+     * @return controls::LEFT for a step counter-clockwise,
+     *         controls::RIGHT for a step clockwise,
+     *         controls::NOOP if the encoder has not moved since the last call.
      */
-    menu::Control readEncoder()
+    controls::Control readEncoder()
     {
         const uint8_t previous = encoderState;
         const uint8_t current = readEncoderState();
         if (current == previous)
         {
-            return menu::NOOP;
+            return controls::NOOP;
         }
 
         quarterSteps += QUARTER_STEP[previous][current];
@@ -74,7 +74,7 @@ namespace
         // Only judge the movement once the knob is resting on a detent again.
         if (current != AT_DETENT)
         {
-            return menu::NOOP;
+            return controls::NOOP;
         }
 
         const int8_t steps = quarterSteps;
@@ -82,13 +82,13 @@ namespace
 
         if (steps >= 4)
         {
-            return menu::RIGHT;
+            return controls::RIGHT;
         }
         if (steps <= -4)
         {
-            return menu::LEFT;
+            return controls::LEFT;
         }
-        return menu::NOOP; // Wiggled part way and came back: not a click
+        return controls::NOOP; // Wiggled part way and came back: not a click
     }
 
     // Enter is the KY-040's built-in push switch: shorts to GND when pressed,
@@ -98,7 +98,7 @@ namespace
     Button enterButton(ENTER_BUTTON_PIN, LOW);
     Button backButton(BACK_BUTTON_PIN, HIGH);
 
-    menu::Control readButtons()
+    controls::Control readButtons()
     {
         // Update both every call so a held button's release is always tracked,
         // even when the other button's press is what gets reported.
@@ -107,19 +107,19 @@ namespace
 
         if (enterJustPressed)
         {
-            return menu::ENTER;
+            return controls::ENTER;
         }
         if (backJustPressed)
         {
-            return menu::BACK;
+            return controls::BACK;
         }
-        return menu::NOOP;
+        return controls::NOOP;
     }
 } // namespace
 
-namespace menu
+namespace controls
 {
-    Control readControls()
+    Control read()
     {
         Control readValue = readEncoder();
         if (readValue != NOOP)
@@ -130,7 +130,7 @@ namespace menu
         return readButtons();
     }
 
-    void initializeControls()
+    void begin()
     {
         // Initialize encoder
         pinMode(PIN_A, INPUT);
@@ -142,4 +142,4 @@ namespace menu
         enterButton.begin();
         backButton.begin();
     }
-} // namespace menu
+} // namespace controls

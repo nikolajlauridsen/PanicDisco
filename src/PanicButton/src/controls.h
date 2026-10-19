@@ -1,6 +1,6 @@
 #pragma once
 
-namespace menu
+namespace controls
 {
     enum Control
     {
@@ -11,7 +11,7 @@ namespace menu
         NOOP = 0,
     };
 
-    Control readControls();
+    Control read();
 
-    void initializeControls();
+    void begin();
 }
