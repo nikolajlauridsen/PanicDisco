@@ -1,5 +1,6 @@
 #include "pinout.h"
 #include <Arduino.h>
+#include "menu.h"
 
 
 namespace
@@ -39,20 +40,25 @@ namespace
 
         return digitalRead(PIN_B) != aVal ? 1 : -1;
     }
-} // namespace
+}
 
-namespace menu_controls
+namespace menu
 {
-    int readMenuControls()
+    Control readControls()
     {
-        return readEncoder();
+        return readEncoder() == 1 ? RIGHT : LEFT;
     }
 
-    void initializeEncoder()
+    void initializeControls()
     {
+        // Initialize encoder
         pinMode(PIN_A, INPUT);
         pinMode(PIN_B, INPUT);
         // Read initial positon
         pinALast = digitalRead(PIN_A);
+
+        // Initialize buttons
     }
-} // namespace menu_controls
+
+    
+}

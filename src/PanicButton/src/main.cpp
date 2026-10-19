@@ -6,7 +6,7 @@
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
 #include "wifi_connection.h"
 #include "pinout.h"
-#include "menu_controls.h"
+#include "menu.h"
 
 
 static DiscoClient disco(API_BASE_URL);
@@ -54,21 +54,21 @@ static int encoderPosCount = 0;
 
 void handleLidOpened()
 {
-    initializeEncoder();
+    menu::initializeControls();
     while (digitalRead(REED_PIN) == HIGH)
     {
-        int encoderValue = readEncoder();
-        if (encoderValue == 1)
+        int controlsValue = menu::readControls();
+        if (controlsValue == menu::RIGHT)
         {
             LOG("Moving right...\n");
             encoderPosCount++;
         }
-        if (encoderValue == -1)
+        if (controlsValue == -1)
         {
             LOG("Moving left...\n");
             encoderPosCount--;
         }
-        if(encoderValue != 0){
+        if(controlsValue != 0){
             LOG("Encoder positon: %d\n", encoderPosCount);
         }
     }
