@@ -91,6 +91,7 @@ void handleLidOpened()
             display::renderMenu(&menu);
             break;
         case controls::ENTER:
+            display::clear();
             menu.select();
             display::renderMenu(&menu);
             break;

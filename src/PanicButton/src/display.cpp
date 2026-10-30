@@ -8,6 +8,28 @@ namespace display
 {
     // 128×64 display
     ONE_BIT_DISPLAY screen;
+    static int currentFont = FONT_NORMAL;
+
+    /**
+     * Height in pixels of one text row in the current built-in font.
+     *
+     * Not taken from getStringBox(): the library reports the built-in fonts one pixel taller than they
+     * are (6x8 comes back as 9), which spaces rows 9 px apart and loses the eighth row on a 64 px display.
+     * Built-in fonts are also drawn in whole 8 px pages, so rows must start at a multiple of 8 anyway.
+     */
+    static int rowHeight()
+    {
+        switch (currentFont)
+        {
+        case FONT_12x16:
+        case FONT_16x16:
+            return 16;
+        case FONT_16x32:
+            return 32;
+        default: // FONT_6x8, FONT_8x8
+            return 8;
+        }
+    }
 
     void clear()
     {
@@ -26,12 +48,14 @@ namespace display
         screen.I2Cbegin();
         screen.allocBuffer();
         screen.setRotation(0);
-        screen.setFont(FONT_SMALL);
+        currentFont = FONT_12x16;
+        screen.setFont(currentFont);
         clear();
     }
 
     void setFont(int font)
     {
+        currentFont = font;
         screen.setFont(font);
     }
 
@@ -39,7 +63,7 @@ namespace display
     {
         BB_RECT box;
         screen.getStringBox(text, &box);
-        screen.drawString(text, (screen.width() - box.w) / 2, (box.h * row));
+        screen.drawString(text, (screen.width() - box.w) / 2, row * rowHeight());
     }
 
     void writeCentered(const char* text, int16_t yOffSet)
@@ -71,18 +95,10 @@ namespace display
     void renderMenu(Menu* menu)
     {
         clear();
+        const int previousFont = currentFont;
 
-        // Measure one label to find the row height; every built-in font has a fixed height.
-        BB_RECT box;
-        screen.getStringBox(menu->getSelected().getLabel(), &box);
-        if (box.h == 0)
-        {
-            // Shouldn't happen but better be sure.
-            LOG("Selected rendered as 0 height, probably empty string, can't render.");
-            return;
-        }
-
-        const int totalRows = screen.height() + 5 / box.h;
+        // 8 rows of 8 px on the 64 px display with the small font; fills the screen exactly.
+        const int totalRows = screen.height() / rowHeight();
         // The selected item sits on this row, with the rest spread above and below it.
         const int centerRow = (totalRows - 1) / 2;
         const int cursor = menu->getCursor();

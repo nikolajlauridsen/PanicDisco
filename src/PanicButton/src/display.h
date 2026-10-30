@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include "menu/menu.h"
+#include <OneBitDisplay.h>
 
 namespace display
 {
