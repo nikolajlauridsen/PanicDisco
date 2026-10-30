@@ -2,13 +2,16 @@
 
 #include <driver/rtc_io.h>
 
+#include "action_menu.h"
 #include "controls.h"
 #include "disco_client.h"
 #include "display.h"
 #include "log.h"
 #include "pinout.h"
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
+#include "volume_menu_item.h"
 #include "wifi_connection.h"
+#include "label_menu_item.h"
 
 static DiscoClient disco(API_BASE_URL);
 
@@ -51,15 +54,18 @@ void handlePanicbutton()
     }
 }
 
-RTC_DATA_ATTR uint8_t volume = 24;
-uint8_t oldVolume = volume;
 void handleLidOpened()
 {
     controls::begin();
     display::begin();
-    display::writeCentered("Volume", -4);
-    display::drawProgressBar(volume, 5);
-    display::update();
+    static VolumeMenuItem volumeItem;
+    static LabelMenuItem demo1("Demo 1");
+    static LabelMenuItem demo2("Demo 2");
+    static LabelMenuItem demo3("Demo 3");
+    static LabelMenuItem demo4("Demo 4");
+    static LabelMenuItem demo5("Demo 5");
+    static ActionMenuItem* const menuItems[] = {&volumeItem, &demo1, &demo2, &demo3, &demo4, &demo5};
+    static ActionMenu menu(menuItems);
 
     while (digitalRead(REED_PIN) == HIGH)
     {
@@ -68,36 +74,20 @@ void handleLidOpened()
         switch (controlsValue)
         {
         case controls::RIGHT:
-            if (volume < 100)
-            {
-                volume += 2;
-            }
-            LOG("Moving right...\n");
+            menu.moveNext();
             break;
         case controls::LEFT:
-            if (volume > 0)
-            {
-                volume -= 2;
-            }
-            LOG("Moving left...\n");
+            menu.movePrevious();
             break;
         case controls::ENTER:
-            LOG("Enter pushed...\n");
-            break;
-        case controls::BACK:
-            LOG("Back pushed...\n");
+            menu.select();
             break;
         }
 
-        if (oldVolume != volume)
-        {
-            display::drawProgressBar(volume, 5);
-            display::update();
-            oldVolume = volume;
-            LOG("Updating display %d volume\n", volume);
-        }
+        // Always clear the screen when returning from a menu.
+        display::clear();
     }
-    
+
     display::clear();
 }
 
