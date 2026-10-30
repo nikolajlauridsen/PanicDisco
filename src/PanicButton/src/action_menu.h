@@ -10,6 +10,9 @@ class ActionMenu : public Menu
     explicit ActionMenu(std::span<ActionMenuItem* const> items);
 
     ActionMenuItem& getSelected() override;
+
+    ActionMenuItem& get(size_t index) override;
+
     size_t size() const override;
 
     /**

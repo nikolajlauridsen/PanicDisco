@@ -44,7 +44,7 @@ void VolumeMenuItem::onSelect()
             return;
         case controls::BACK:
             LOG("Back pushed...\n");
-            break;
+            return;
         }
 
         if (oldVolume != volume)

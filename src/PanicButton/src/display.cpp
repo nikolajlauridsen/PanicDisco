@@ -1,3 +1,6 @@
+#include "log.h"
+#include "menu.h"
+#include "menu_item.h"
 #include <Arduino.h>
 #include <OneBitDisplay.h>
 
@@ -56,11 +59,56 @@ namespace display
         const uint16_t innerWidth = width - 2 * inset;
         const uint16_t fillWidth = (innerWidth * min<uint8_t>(progress, 100)) / 100;
 
-        // "Clear" the inner rectancle, this is nececary if the progress bar reduces, otherwise the old larger on would stick around
+        // "Clear" the inner rectancle, this is nececary if the progress bar reduces, otherwise the old larger on would
+        // stick around
         screen.fillRect(x + inset, y + inset, innerWidth, height - 2 * inset, OBD_WHITE);
         if (fillWidth > 0)
         {
             screen.fillRect(x + inset, y + inset, fillWidth, height - 2 * inset, OBD_BLACK);
         }
     }
+
+    void renderMenu(Menu* menu)
+    {
+        screen.fillScreen(OBD_WHITE);
+
+        // Measure one label to find the row height; every built-in font has a fixed height.
+        BB_RECT box;
+        screen.getStringBox(menu->getSelected().getLabel(), &box);
+        if (box.h == 0)
+        {
+            // Shouldn't happen but better be sure.
+            LOG("Selected rendered as 0 height, probably empty string, can't render.");
+            return;
+        }
+
+        const int totalRows = screen.height() / box.h;
+        // The selected item sits on this row, with the rest spread above and below it.
+        const int centerRow = (totalRows - 1) / 2;
+        const int cursor = menu->getCursor();
+        const int size = menu->size();
+
+        for (int row = 0; row < totalRows; row++)
+        {
+            // Row 0 is centerRow items before the cursor, the last row is the same distance after it.
+            const int index = cursor + (row - centerRow);
+            if (index < 0 || index >= size)
+            {
+                continue;
+            }
+
+            if (index == cursor)
+            {
+                // Invert the whole row so the selection stands out: black band, white text.
+                screen.setTextColor(OBD_WHITE, OBD_BLACK);
+                writeCenteredX(menu->get(index).getLabel(), row);
+                screen.setTextColor(OBD_BLACK, OBD_WHITE);
+            }
+            else
+            {
+                writeCenteredX(menu->get(index).getLabel(), row);
+            }
+        }
+    }
+
 } // namespace display

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "menu.h"
 
 namespace display
 {
@@ -17,4 +18,6 @@ namespace display
     void writeCentered(const char* text, int16_t yOffSet = 0);
 
     void drawProgressBar(uint8_t progress, int16_t yOffSet = 0, uint16_t width = 110, uint16_t height = 12);
+
+    void renderMenu(Menu* menu);
 }

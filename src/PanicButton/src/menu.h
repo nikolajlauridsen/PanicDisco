@@ -13,6 +13,8 @@ class Menu
      */
     virtual MenuItem& getSelected() = 0;
 
+    virtual MenuItem& get(size_t index) = 0;
+
     /**
      * @return the number of items in the menu.
      */

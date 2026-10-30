@@ -6,12 +6,12 @@
 #include "controls.h"
 #include "disco_client.h"
 #include "display.h"
+#include "label_menu_item.h"
 #include "log.h"
 #include "pinout.h"
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
 #include "volume_menu_item.h"
 #include "wifi_connection.h"
-#include "label_menu_item.h"
 
 static DiscoClient disco(API_BASE_URL);
 
@@ -67,6 +67,9 @@ void handleLidOpened()
     static ActionMenuItem* const menuItems[] = {&volumeItem, &demo1, &demo2, &demo3, &demo4, &demo5};
     static ActionMenu menu(menuItems);
 
+    display::renderMenu(&menu);
+    display::update();
+
     while (digitalRead(REED_PIN) == HIGH)
     {
         int controlsValue = controls::read();
@@ -74,18 +77,24 @@ void handleLidOpened()
         switch (controlsValue)
         {
         case controls::RIGHT:
+            LOG("Moving right");
             menu.moveNext();
+            display::renderMenu(&menu);
+            display::update();
             break;
         case controls::LEFT:
+            LOG("Moving left");
             menu.movePrevious();
+            display::renderMenu(&menu);
+            display::update();
             break;
         case controls::ENTER:
+            display::clear();
             menu.select();
+            display::clear();
+            display::renderMenu(&menu);
             break;
         }
-
-        // Always clear the screen when returning from a menu.
-        display::clear();
     }
 
     display::clear();
