@@ -93,6 +93,7 @@ void handleLidOpened()
         case controls::ENTER:
             display::clear();
             menu.select();
+            display::setFont(FONT_12x16);
             display::renderMenu(&menu);
             break;
         }

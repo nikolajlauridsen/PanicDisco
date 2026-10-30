@@ -15,6 +15,7 @@ RTC_DATA_ATTR uint8_t volume = 24;
 uint8_t oldVolume = volume;
 void VolumeMenuItem::onSelect()
 {
+    display::setFont(FONT_SMALL);
     display::writeCentered("Volume", -4);
     display::drawProgressBar(volume, 5);
     display::update();
