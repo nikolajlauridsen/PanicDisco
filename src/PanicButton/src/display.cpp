@@ -1,6 +1,6 @@
 #include "log.h"
-#include "menu.h"
-#include "menu_item.h"
+#include "menu/menu.h"
+#include "menu/menu_item.h"
 #include <Arduino.h>
 #include <OneBitDisplay.h>
 
@@ -70,7 +70,7 @@ namespace display
 
     void renderMenu(Menu* menu)
     {
-        screen.fillScreen(OBD_WHITE);
+        clear();
 
         // Measure one label to find the row height; every built-in font has a fixed height.
         BB_RECT box;
@@ -82,7 +82,7 @@ namespace display
             return;
         }
 
-        const int totalRows = screen.height() / box.h;
+        const int totalRows = screen.height() + 5 / box.h;
         // The selected item sits on this row, with the rest spread above and below it.
         const int centerRow = (totalRows - 1) / 2;
         const int cursor = menu->getCursor();
@@ -109,6 +109,8 @@ namespace display
                 writeCenteredX(menu->get(index).getLabel(), row);
             }
         }
+
+        update();
     }
 
 } // namespace display

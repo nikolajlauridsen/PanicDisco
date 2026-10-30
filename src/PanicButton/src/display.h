@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "menu.h"
+#include "menu/menu.h"
 
 namespace display
 {

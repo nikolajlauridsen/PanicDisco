@@ -2,15 +2,15 @@
 
 #include <driver/rtc_io.h>
 
-#include "action_menu.h"
 #include "controls.h"
 #include "disco_client.h"
 #include "display.h"
-#include "label_menu_item.h"
 #include "log.h"
+#include "menu/action_menu.h"
+#include "menu/items/label_menu_item.h"
+#include "menu/items/volume_menu_item.h"
 #include "pinout.h"
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
-#include "volume_menu_item.h"
 #include "wifi_connection.h"
 
 static DiscoClient disco(API_BASE_URL);
@@ -64,11 +64,15 @@ void handleLidOpened()
     static LabelMenuItem demo3("Demo 3");
     static LabelMenuItem demo4("Demo 4");
     static LabelMenuItem demo5("Demo 5");
-    static ActionMenuItem* const menuItems[] = {&volumeItem, &demo1, &demo2, &demo3, &demo4, &demo5};
+    static LabelMenuItem demo6("Demo 6");
+    static LabelMenuItem demo7("Demo 7");
+    static LabelMenuItem demo8("Demo 8");
+    static LabelMenuItem demo9("Demo 9");
+    static ActionMenuItem* const menuItems[] = {&volumeItem, &demo1, &demo2, &demo3, &demo4,
+                                                &demo5,      &demo6, &demo7, &demo8, &demo9};
     static ActionMenu menu(menuItems);
 
     display::renderMenu(&menu);
-    display::update();
 
     while (digitalRead(REED_PIN) == HIGH)
     {
@@ -80,18 +84,14 @@ void handleLidOpened()
             LOG("Moving right");
             menu.moveNext();
             display::renderMenu(&menu);
-            display::update();
             break;
         case controls::LEFT:
             LOG("Moving left");
             menu.movePrevious();
             display::renderMenu(&menu);
-            display::update();
             break;
         case controls::ENTER:
-            display::clear();
             menu.select();
-            display::clear();
             display::renderMenu(&menu);
             break;
         }

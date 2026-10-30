@@ -1,16 +1,28 @@
 # PanicButton
 
 Firmware for the panic button itself: a [Seeed Studio XIAO ESP32-C6](https://wiki.seeedstudio.com/xiao_esp32c6_getting_started/)
-built with [PlatformIO](https://platformio.org/) and the Arduino framework. It will eventually talk to `disco_server`'s
-panic API (`POST /api/panic/start` / `POST /api/panic/stop`) over Wi-Fi; right now it's a bring-up sketch.
+built with [PlatformIO](https://platformio.org/) and the Arduino framework. It sleeps until either the panic button
+is pressed or the lid is opened. Button: connect to Wi-Fi and call `disco_server`'s panic API (`POST /api/panic/start`,
+then `POST /api/panic/stop` once the button is twisted back). Lid: show a settings menu on the OLED, driven by a rotary
+encoder, until the lid is closed again.
 
 ## Layout
 
 ```
 src/
-  main.cpp              wake -> connect -> fire request -> deep sleep; nothing else
+  main.cpp              wake -> reed switch decides: panic path or menu path -> deep sleep; nothing else
   wifi_connection.*     fast Wi-Fi reconnect (remembers channel/BSSID across sleep, static IP)
   disco_client.*        DiscoClient: one method per disco_server endpoint (panicStart/panicStop, ...)
+  pinout.h              every GPIO number in one place (button, reed switch, encoder, enter/back buttons)
+  button.*              Button: debounced push button, justPressed() fires once per press
+  controls.*            rotary encoder + buttons -> LEFT / RIGHT / ENTER / BACK via controls::read()
+  display.*             the OLED: text helpers, progress bar, renderMenu()
+  menu/                 menu framework
+    menu_item.h           MenuItem: getLabel()
+    action_menu_item.h    ActionMenuItem: + onSelect()
+    menu.h                Menu: owns the cursor (moveNext/movePrevious), abstract over the items
+    action_menu.*         ActionMenu: a Menu of ActionMenuItems, select() runs the chosen one
+    items/                concrete menu entries (volume_menu_item.*, label_menu_item.*)
 include/
   log.h                 LOG()/LOG_BEGIN()/LOG_FLUSH(): serial logging in the debug env, nothing in release
   secrets.example.h     template for secrets.h: Wi-Fi credentials, static IP, API base URL
@@ -20,6 +32,19 @@ platformio.local.ini    your COM port etc. - gitignored
 ```
 
 New server endpoints become methods on `DiscoClient`; `main.cpp` should stay a handful of lines.
+
+Includes that cross a folder are written from `src/`, which PlatformIO puts on the include path:
+`#include "menu/action_menu.h"`, `#include "menu/items/volume_menu_item.h"`. Files in the same folder use the bare
+name.
+
+### Adding a menu entry
+
+1. Add `src/menu/items/<name>_menu_item.h` / `.cpp` with a class deriving from `ActionMenuItem`, implementing
+   `getLabel()` and `onSelect()`. `onSelect()` owns the screen and the controls until it returns; loop on
+   `controls::read()` and return on `ENTER` or `BACK` (see `volume_menu_item.cpp`).
+2. In `handleLidOpened()` in `main.cpp`, add a `static` instance and put its address in the `menuItems` array.
+   Both must be `static`: `ActionMenu` only holds a view (`std::span`) over that array, it doesn't copy it.
+3. Run `pio run -t compiledb` so clangd picks up the new files.
 
 ## Prerequisites
 
@@ -74,8 +99,7 @@ pio run -e seeed_xiao_esp32c6 -t upload    # flash the release build
 Log with the macros, never with `Serial` directly, so the release build stays silent:
 
 ```cpp
-LOG("POST /panic/start -> %d
-", status);   // printf-style
+LOG("POST /panic/start -> %d\n", status);   // printf-style
 LOG_FLUSH();                                  // before deep sleep, so the last lines get out
 ```
 
@@ -147,4 +171,12 @@ stops resolving.
 ## Hardware notes
 
 * The onboard user LED is `LED_BUILTIN` (GPIO 15) and is **active low**: `digitalWrite(LED_BUILTIN, LOW)` turns it on.
+* All other pins are defined in `src/pinout.h`. Panic button on GPIO 0 and the lid's reed switch on GPIO 1 are the
+  deep-sleep (ext1) wake sources, both wired active high. The KY-040 rotary encoder's A/B go to GPIO 19/17 and its
+  push button (active low, external pull-up) to GPIO 18; a separate back button (active high, external pull-down) is
+  on GPIO 20. The 128×64 I2C OLED sits on the board's `SDA`/`SCL` pins and is driven by the OneBitDisplay library.
+* The encoder is decoded with a Gray-code quadrature table in `controls.cpp` (one detent = one full 4-step cycle),
+  which is what makes it immune to contact bounce. Don't swap it for a single-edge read plus a `millis()` debounce;
+  that was the original jumpy version.
+* `lib_ldf_mode = chain` in `platformio.ini` is required for OneBitDisplay to build; see the comment there.
 * Pinout and specs: [Seeed wiki](https://wiki.seeedstudio.com/xiao_esp32c6_getting_started/).

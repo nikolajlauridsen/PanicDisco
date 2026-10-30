@@ -1,6 +1,6 @@
 #pragma once
 
-#include "action_menu_item.h"
+#include "menu/action_menu_item.h"
 
 class LabelMenuItem : public ActionMenuItem
 {
