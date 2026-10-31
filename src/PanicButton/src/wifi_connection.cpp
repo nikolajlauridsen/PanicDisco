@@ -59,4 +59,9 @@ namespace wifi_connection
         }
         return ok;
     }
+
+    bool isConnected()
+    {
+        return WiFi.isConnected();
+    }
 } // namespace wifi_connection

@@ -65,11 +65,14 @@ class DiscoClient
      */
     int getTracks(std::vector<TrackEntity>& tracks);
 
+    int loadTrack(TrackEntity& track);
+
     // /api/boombox endpoints go here as they're needed.
 
   private:
     String url(const char* endpoint) const;
     int post(const char* endpoint);
+    int put(const char* endpoint);
 
     const char* baseUrl_;
 };

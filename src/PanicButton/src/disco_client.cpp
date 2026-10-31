@@ -69,6 +69,11 @@ int DiscoClient::getTracks(std::vector<TrackEntity>& tracks)
     return status;
 }
 
+int DiscoClient::loadTrack(TrackEntity& track)
+{
+    return put((String("/boombox/load/") + track.id).c_str());
+}
+
 String DiscoClient::url(const char* endpoint) const
 {
     return String(baseUrl_) + endpoint;
@@ -81,6 +86,15 @@ int DiscoClient::post(const char* endpoint)
     HTTPClient http;
     http.begin(url(endpoint));
     const int status = http.POST("");
+    http.end();
+    return status;
+}
+
+int DiscoClient::put(const char* endpoint)
+{
+    HTTPClient http;
+    http.begin(url(endpoint));
+    const int status = http.PUT("");
     http.end();
     return status;
 }

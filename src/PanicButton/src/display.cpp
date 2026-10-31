@@ -48,7 +48,7 @@ namespace display
         screen.I2Cbegin();
         screen.allocBuffer();
         screen.setRotation(0);
-        currentFont = FONT_12x16;
+        currentFont = FONT_SMALL;
         screen.setFont(currentFont);
         clear();
     }

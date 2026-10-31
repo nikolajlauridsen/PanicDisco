@@ -2,6 +2,7 @@
 
 #include "disco_client.h"
 #include "menu/action_menu_item.h"
+#include "track_entity.h"
 
 class SelectTrackMenuItem : public ActionMenuItem
 {
@@ -12,4 +13,6 @@ class SelectTrackMenuItem : public ActionMenuItem
 
   private:
     DiscoClient& client;
+    void waitForReturn();
+    bool loadTrack(TrackEntity& track);
 };

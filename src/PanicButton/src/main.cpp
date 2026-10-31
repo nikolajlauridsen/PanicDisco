@@ -8,6 +8,7 @@
 #include "log.h"
 #include "menu/action_menu.h"
 #include "menu/items/label_menu_item.h"
+#include "menu/items/select_track_menu_item.h"
 #include "menu/items/volume_menu_item.h"
 #include "pinout.h"
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
@@ -59,6 +60,7 @@ void handleLidOpened()
     controls::begin();
     display::begin();
     static VolumeMenuItem volumeItem;
+    static SelectTrackMenuItem trackMenuItem(disco);
     static LabelMenuItem demo1("Demo 1");
     static LabelMenuItem demo2("Demo 2");
     static LabelMenuItem demo3("Demo 3");
@@ -68,8 +70,8 @@ void handleLidOpened()
     static LabelMenuItem demo7("Demo 7");
     static LabelMenuItem demo8("Demo 8");
     static LabelMenuItem demo9("Demo 9");
-    static ActionMenuItem* const menuItems[] = {&volumeItem, &demo1, &demo2, &demo3, &demo4,
-                                                &demo5,      &demo6, &demo7, &demo8, &demo9};
+    static ActionMenuItem* const menuItems[] = {&volumeItem, &trackMenuItem, &demo1, &demo2, &demo3, &demo4,
+                                                &demo5,      &demo6,        &demo7, &demo8, &demo9};
     static ActionMenu menu(menuItems);
 
     display::renderMenu(&menu);
@@ -93,7 +95,7 @@ void handleLidOpened()
         case controls::ENTER:
             display::clear();
             menu.select();
-            display::setFont(FONT_12x16);
+            display::setFont(FONT_SMALL);
             display::renderMenu(&menu);
             break;
         }

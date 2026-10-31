@@ -14,4 +14,6 @@ namespace wifi_connection
     // channel). Blocks for at most ~2x the connect timeout. Returns true if
     // connected.
     bool connect();
+
+    bool isConnected();
 } // namespace wifi_connection
