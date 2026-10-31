@@ -11,6 +11,11 @@
  * object. Drawing goes into an in-memory buffer and only reaches the panel on
  * update(), so group several draw calls and call update() once. Coordinates
  * are in pixels with (0, 0) top-left; a positive yOffSet moves things down.
+ *
+ * The text functions truncate anything longer than one row holds in the
+ * current font (screen width / character width, e.g. 21 characters with
+ * FONT_SMALL), because the library would otherwise wrap it onto the next
+ * row over whatever is already drawn there.
  */
 namespace display
 {
@@ -39,7 +44,8 @@ namespace display
     void setFont(int font);
 
     /**
-     * Draws text horizontally centred on a given text row.
+     * Draws text horizontally centred on a given text row. Truncated to fit
+     * the row if too long.
      *
      * @param text NUL-terminated string to draw.
      * @param row  0-based row, each one font-height tall from the top of the
@@ -48,7 +54,8 @@ namespace display
     void writeCenteredX(const char* text, int row);
 
     /**
-     * Draws text centred both horizontally and vertically.
+     * Draws text centred both horizontally and vertically. Truncated to fit
+     * one row if too long.
      *
      * @param text    NUL-terminated string to draw.
      * @param yOffSet pixels to shift from the vertical centre, positive = down.

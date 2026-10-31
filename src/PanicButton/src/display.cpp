@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include <OneBitDisplay.h>
 
+#include <cstring>
+
 namespace display
 {
     // 128×64 display
@@ -29,6 +31,57 @@ namespace display
         default: // FONT_6x8, FONT_8x8
             return 8;
         }
+    }
+
+    /**
+     * Width in pixels of one character in the current built-in font. All the
+     * built-in fonts are fixed-width, so this is exact.
+     */
+    static int charWidth()
+    {
+        switch (currentFont)
+        {
+        case FONT_6x8:
+            return 6;
+        case FONT_12x16:
+            return 12;
+        case FONT_16x16:
+        case FONT_16x32:
+            return 16;
+        default: // FONT_8x8
+            return 8;
+        }
+    }
+
+    /**
+     * Longest string (in characters) the current font fits on one row.
+     */
+    static size_t maxChars()
+    {
+        return screen.width() / charWidth();
+    }
+
+    // Enough for the smallest font on the widest row (128 / 6 = 21) plus NUL,
+    // with room to spare if a wider display is ever used.
+    constexpr size_t FIT_BUFFER_SIZE = 32;
+
+    /**
+     * Returns text if it fits on one row in the current font, otherwise a
+     * truncated copy of it in buffer. The library doesn't clip at the edge:
+     * a too-long string wraps onto the next row and over whatever's there,
+     * which is what this guards against.
+     */
+    static const char* fitToRow(const char* text, char (&buffer)[FIT_BUFFER_SIZE])
+    {
+        const size_t limit = min(maxChars(), FIT_BUFFER_SIZE - 1);
+        if (strlen(text) <= limit)
+        {
+            return text;
+        }
+
+        memcpy(buffer, text, limit);
+        buffer[limit] = '\0';
+        return buffer;
     }
 
     void clear()
@@ -61,6 +114,9 @@ namespace display
 
     void writeCenteredX(const char* text, int row)
     {
+        char buffer[FIT_BUFFER_SIZE];
+        text = fitToRow(text, buffer);
+
         BB_RECT box;
         screen.getStringBox(text, &box);
         screen.drawString(text, (screen.width() - box.w) / 2, row * rowHeight());
@@ -68,6 +124,9 @@ namespace display
 
     void writeCentered(const char* text, int16_t yOffSet)
     {
+        char buffer[FIT_BUFFER_SIZE];
+        text = fitToRow(text, buffer);
+
         BB_RECT box;
         screen.getStringBox(text, &box);
         screen.drawString(text, (screen.width() - box.w) / 2, (screen.height() - box.h) / 2 + yOffSet);
