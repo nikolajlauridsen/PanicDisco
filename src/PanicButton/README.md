@@ -3,8 +3,9 @@
 Firmware for the panic button itself: a [Seeed Studio XIAO ESP32-C6](https://wiki.seeedstudio.com/xiao_esp32c6_getting_started/)
 built with [PlatformIO](https://platformio.org/) and the Arduino framework. It sleeps until either the panic button
 is pressed or the lid is opened. Button: connect to Wi-Fi and call `disco_server`'s panic API (`POST /api/panic/start`,
-then `POST /api/panic/stop` once the button is twisted back). Lid: show a settings menu on the OLED, driven by a rotary
-encoder, until the lid is closed again.
+then `POST /api/panic/stop` once the button is twisted back). Lid: show a menu on the OLED, driven by a rotary
+encoder, until the lid is closed again. The menu has a volume setting and a track picker that fetches the track list
+(`GET /api/tracks`) and cues the chosen one up in the server's boombox (`PUT /api/boombox/load/<id>`).
 
 ## Layout
 
@@ -12,7 +13,8 @@ encoder, until the lid is closed again.
 src/
   main.cpp              wake -> reed switch decides: panic path or menu path -> deep sleep; nothing else
   wifi_connection.*     fast Wi-Fi reconnect (remembers channel/BSSID across sleep, static IP)
-  disco_client.*        DiscoClient: one method per disco_server endpoint (panicStart/panicStop, ...)
+  disco_client.*        DiscoClient: one method per disco_server endpoint (panicStart/panicStop/getTracks/loadTrack)
+  track_entity.h        TrackEntity: id + name, the C++ mirror of disco_shared's TrackEntity; also a MenuItem
   pinout.h              every GPIO number in one place (button, reed switch, encoder, enter/back buttons)
   button.*              Button: debounced push button, justPressed() fires once per press
   controls.*            rotary encoder + buttons -> LEFT / RIGHT / ENTER / BACK via controls::read()
@@ -22,7 +24,8 @@ src/
     action_menu_item.h    ActionMenuItem: + onSelect()
     menu.h                Menu: owns the cursor (moveNext/movePrevious), abstract over the items
     action_menu.*         ActionMenu: a Menu of ActionMenuItems, select() runs the chosen one
-    items/                concrete menu entries (volume_menu_item.*, label_menu_item.*)
+    track_menu.*          TrackMenu: a Menu over a std::vector<TrackEntity> fetched at runtime
+    items/                concrete menu entries (volume_menu_item.*, select_track_menu_item.*, label_menu_item.*)
 include/
   log.h                 LOG()/LOG_BEGIN()/LOG_FLUSH(): serial logging in the debug env, nothing in release
   secrets.example.h     template for secrets.h: Wi-Fi credentials, static IP, API base URL
@@ -32,6 +35,12 @@ platformio.local.ini    your COM port etc. - gitignored
 ```
 
 New server endpoints become methods on `DiscoClient`; `main.cpp` should stay a handful of lines.
+
+JSON goes through [ArduinoJson](https://arduinojson.org/) v7 (`lib_deps`). `DiscoClient::getTracks()` is the pattern
+to copy for a new endpoint that returns a body: `http.useHTTP10(true)` (so the body isn't chunked), deserialize
+straight from `http.getStream()` through a `DeserializationOption::Filter` that names only the fields you want, then
+`item.as<YourStruct>()` via a `convertFromJson(JsonVariantConst, YourStruct&)` free function next to the struct (see
+`track_entity.h`). Strings from the document die with it, so copy them into the struct rather than keeping the pointer.
 
 Includes that cross a folder are written from `src/`, which PlatformIO puts on the include path:
 `#include "menu/action_menu.h"`, `#include "menu/items/volume_menu_item.h"`. Files in the same folder use the bare
@@ -45,6 +54,15 @@ name.
 2. In `handleLidOpened()` in `main.cpp`, add a `static` instance and put its address in the `menuItems` array.
    Both must be `static`: `ActionMenu` only holds a view (`std::span`) over that array, it doesn't copy it.
 3. Run `pio run -t compiledb` so clangd picks up the new files.
+
+Two things to know when writing `onSelect()`:
+
+* **Talking to the server?** Call `wifi_connection::connect()` first (skip it if `isConnected()`). The lid path
+  doesn't connect on wake, and opening a socket before the Wi-Fi stack is up doesn't fail gracefully, it aborts the
+  firmware with a `xQueueSemaphoreTake` assert. `select_track_menu_item.cpp` shows the guard.
+* **Showing a list that only exists at runtime?** Derive from `Menu` instead of using `ActionMenu`, as `TrackMenu`
+  does over a `std::vector<TrackEntity>`. The menu only holds a reference to the data, so declare both in the same
+  scope. Text longer than one row is truncated by `display`, so long labels are safe.
 
 ## Prerequisites
 
@@ -175,6 +193,8 @@ stops resolving.
   deep-sleep (ext1) wake sources, both wired active high. The KY-040 rotary encoder's A/B go to GPIO 19/17 and its
   push button (active low, external pull-up) to GPIO 18; a separate back button (active high, external pull-down) is
   on GPIO 20. The 128×64 I2C OLED sits on the board's `SDA`/`SCL` pins and is driven by the OneBitDisplay library.
+  The built-in fonts are fixed-width, so a row holds `128 / char width` characters (21 with `FONT_SMALL`); the
+  `display` text functions cut anything longer rather than letting the library wrap it over the next row.
 * The encoder is decoded with a Gray-code quadrature table in `controls.cpp` (one detent = one full 4-step cycle),
   which is what makes it immune to contact bounce. Don't swap it for a single-edge read plus a `millis()` debounce;
   that was the original jumpy version.
