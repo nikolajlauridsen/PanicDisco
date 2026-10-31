@@ -1,4 +1,3 @@
-#include "log.h"
 #include "menu/menu.h"
 #include "menu/menu_item.h"
 #include <Arduino.h>

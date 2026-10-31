@@ -65,13 +65,26 @@ class DiscoClient
      */
     int getTracks(std::vector<TrackEntity>& tracks);
 
+    /**
+     * PUT /api/boombox/load/<id> - cues the track up in the server's boombox so
+     * the next panicStart() plays it. Only the track's id is used.
+     *
+     * @return 200 on success, 404 if the id no longer exists on the server,
+     *         or a negative error (see class docs).
+     */
     int loadTrack(TrackEntity& track);
 
-    // /api/boombox endpoints go here as they're needed.
+    // Remaining /api/boombox endpoints (play/stop/pause/resume) go here as
+    // they're needed.
 
   private:
+    /** @return baseUrl_ + endpoint, e.g. "http://host:5000/api/panic/start". */
     String url(const char* endpoint) const;
+
+    /** Bodyless POST to url(endpoint). @return status as described on the class. */
     int post(const char* endpoint);
+
+    /** Bodyless PUT to url(endpoint). @return status as described on the class. */
     int put(const char* endpoint);
 
     const char* baseUrl_;

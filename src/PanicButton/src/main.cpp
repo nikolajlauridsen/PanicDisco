@@ -7,15 +7,23 @@
 #include "display.h"
 #include "log.h"
 #include "menu/action_menu.h"
-#include "menu/items/label_menu_item.h"
 #include "menu/items/select_track_menu_item.h"
 #include "menu/items/volume_menu_item.h"
 #include "pinout.h"
 #include "secrets.h" // WIFI_*, STATIC_IP, API_BASE_URL - gitignored, see include/secrets.example.h
 #include "wifi_connection.h"
 
+/** The one server client, shared by the panic path and the menu items. */
 static DiscoClient disco(API_BASE_URL);
 
+/**
+ * Wake path when the lid is closed: the panic button was twisted on.
+ *
+ * Connects, fires POST /panic/start, then waits while the button stays
+ * latched HIGH. Once it's twisted back off, POST /panic/stop is retried up to
+ * ten times with growing back-off, since leaving the disco running is the
+ * worst outcome. Returns to setup(), which deep-sleeps.
+ */
 void handlePanicbutton()
 {
     if (wifi_connection::connect() == false)
@@ -55,23 +63,22 @@ void handlePanicbutton()
     }
 }
 
+/**
+ * Wake path when the lid is open: drives the OLED menu until it closes.
+ *
+ * Builds the menu once (static items and array, because ActionMenu holds a
+ * non-owning span over them) and loops on controls::read(): LEFT/RIGHT move
+ * the cursor, ENTER hands the screen to the selected item until it returns.
+ * The reed switch going LOW ends the loop. Returns to setup(), which
+ * deep-sleeps.
+ */
 void handleLidOpened()
 {
     controls::begin();
     display::begin();
-    static VolumeMenuItem volumeItem;
     static SelectTrackMenuItem trackMenuItem(disco);
-    static LabelMenuItem demo1("Demo 1");
-    static LabelMenuItem demo2("Demo 2");
-    static LabelMenuItem demo3("Demo 3");
-    static LabelMenuItem demo4("Demo 4");
-    static LabelMenuItem demo5("Demo 5");
-    static LabelMenuItem demo6("Demo 6");
-    static LabelMenuItem demo7("Demo 7");
-    static LabelMenuItem demo8("Demo 8");
-    static LabelMenuItem demo9("Demo 9");
-    static ActionMenuItem* const menuItems[] = {&volumeItem, &trackMenuItem, &demo1, &demo2, &demo3, &demo4,
-                                                &demo5,      &demo6,        &demo7, &demo8, &demo9};
+    static VolumeMenuItem volumeItem;
+    static ActionMenuItem* const menuItems[] = {&trackMenuItem, &volumeItem};
     static ActionMenu menu(menuItems);
 
     display::renderMenu(&menu);
@@ -104,6 +111,11 @@ void handleLidOpened()
     display::clear();
 }
 
+/**
+ * Turns the LED off, arms ext1 wake on the panic button or the reed switch
+ * going HIGH, and enters deep sleep. Never returns; the next wake starts
+ * again at setup().
+ */
 void enterSleep()
 {
     digitalWrite(LED_BUILTIN, HIGH);
@@ -113,6 +125,12 @@ void enterSleep()
     esp_deep_sleep_start();
 }
 
+/**
+ * Entry point on every wake. Decides which path to take from the reed switch
+ * (HIGH = lid open = menu, LOW = lid closed = panic button), runs it, then
+ * deep-sleeps. A wake that isn't from ext1 (e.g. first power-on or a reset)
+ * goes straight back to sleep so the device only ever acts on the two inputs.
+ */
 void setup()
 {
     // If not waking from the pin wakeups we just exit immediately
@@ -147,6 +165,7 @@ void setup()
     enterSleep();
 }
 
+/** Never reached: setup() always ends in deep sleep. */
 void loop()
 {
 }

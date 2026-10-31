@@ -13,7 +13,7 @@ void Button::begin(uint8_t pullMode)
 
 void Button::setDebounce(uint32_t debounceMs)
 {
-    debounceMs = debounceMs;
+    this->debounceMs = debounceMs;
 }
 
 bool Button::justPressed()
